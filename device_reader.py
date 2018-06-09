@@ -1,16 +1,16 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-Author: Francisco Viramontes
+'''
+@author Francisco Viramontes
 
-Description: Reads mac/ip addresses from database.
+Description: Reads mac/ip addresses from specific tables from a database.
 
-Input: string of a table name in database
+Input: String of a table name in database, needs to have columns [key, mac_addr, ip_addr]
 
 Output: Contents of the table
-"""
+'''
 
-import DatabaseConnect as dc
+import DatabaseConnector as dc
 
 table_name = "ip"
 
