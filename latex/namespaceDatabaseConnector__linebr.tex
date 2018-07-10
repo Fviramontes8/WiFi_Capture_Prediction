@@ -1,0 +1,40 @@
+\hypertarget{namespaceDatabaseConnector__linebr}{}\section{Database\+Connector\+\_\+linebr Namespace Reference}
+\label{namespaceDatabaseConnector__linebr}\index{Database\+Connector\+\_\+linebr@{Database\+Connector\+\_\+linebr}}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Authors: Seth Decker, Francisco Viramontes
+
+Description: This code interfaces to a PostgreSQL database. It can build tables, 
+read tables, and write to tables.
+
+
+Example:
+
+    #Read data table
+>>> import DatabaseConnect as dc
+    
+    database = dc.DatabaseConnect()
+    
+    database.connect()
+    
+    print(database.readDataTable())
+    
+    database.disconnect()
+
+
+    #Write data table
+>>> import DatabaseConnect as dc
+    
+    database = dc.DatabaseConnect()
+    
+    data_table_name = "example_table"
+
+    data_list = []
+    data_list.append((1, 2, "dummy", "dummy", "dummy", "dummy", 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24))  
+    data_list.append((2, 3, "dummy", "dummy", "dummy", "dummy", 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25))
+
+    database.writeData(data_table_name, data_list)
+
+    database.disconnect()\end{DoxyVerb}
+ 

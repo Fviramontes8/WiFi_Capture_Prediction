@@ -132,9 +132,19 @@ def GP_prep(train, test, avg_samp, sub_samp_begin, sub_samp_end, window):
     feat_ytest = [samp_test[i] for i in range(window, samp_test1.shape[0])]
     ytst = np.atleast_2d(feat_ytest).T
     return tot_samp, Xtr, Ytr, xtst, ycomp, ytst
+
+def feature_plot(yaxis, feature, color):
+    #Take a look to https://matplotlib.org/2.0.2/api/pyplot_api.html#matplotlib.pyplot.plot for color options.
+    plt.title("Sampled feature: " + str(yaxis) + " with half-hour sample rate")
+    plt.xlabel("Time in half-hours")
+    plt.ylabel(yaxis)
+    plt.plot(feature, color + "--")
+    plt.legend()
+    plt.show()
     
 #Main:
 timestamps = []
+timestamps_tst = []
 nou = []
 nou_tst = []
 bits = []
@@ -153,22 +163,31 @@ phyN = []
 n_tst = []
 
 db = dc.DatabaseConnect()
-db.connect()
-
-train_table = "pi_mon"
-test_table = "pi_sun"
+#db.connect()
+#print("Hello")
+db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
+#print("Henlo")
+train_table = "pi_sun"
+test_table = "pi_sun2"
 
 train = db.readTable(train_table)
 test = db.readTable(test_table)
 
-#create_table_name = "pi_mon"
-#db.createDataTable(create_table_name)
+#create_table_name = "first_test3"
+#db.createDataTable_5ghz(create_table_name)
+#print(db.getTableNames())
+
+#table_name_test = "5pi_thurs2"
+#table_name_test2 = "5pi_fri2"
+#test = db.readTable(table_name_test)
+#db.createDataTable_5ghz(table_name_test)
+#db.createDataTable_5ghz(table_name_test2)
 
 db.disconnect()
 
 #Data from table (in form of tuple)
 #k and l are just dummy arrays
-for k in sorted(train, key=lambda hello: hello[0]):
+for k in sorted(train, key=lambda hello: hello[1]):
     timestamps.append(int(k[1]))
     nou.append(int(k[2]))
     bits.append(int(k[3]))
@@ -178,8 +197,10 @@ for k in sorted(train, key=lambda hello: hello[0]):
     phyB.append(int(k[7]))
     phyG.append(int(k[8]))
     phyN.append(int(k[9]))
+
     
-for l in sorted(test, key=lambda yello: yello[0]):
+for l in sorted(test, key=lambda yello: yello[1]):
+    timestamps_tst.append(int(l[1]))
     nou_tst.append(int(l[2]))
     bits_tst.append(int(l[3]))
     pkt_tst.append(int(l[4]))
@@ -187,7 +208,7 @@ for l in sorted(test, key=lambda yello: yello[0]):
     dR_tst.append(int(l[6]))
     b_tst.append(int(l[7]))
     g_tst.append(int(l[8]))
-    n_tst.append(int(l[9]))
+    n_tst.append(int(l[8]))
 
 
 #print "Average number of users: " + str(int(mean(nou)))
@@ -223,37 +244,96 @@ labels = ["Number of users",
           "802.11n bits"
           ]
 
+labels_5ghz = ["Number of users",
+               "Bits",
+               "Number of Packets",
+               "Signal Strength",
+               "Data Rate(MB)",
+               "802.11a bits",
+               "802.11n bits"
+               ]
+
+
+
+print(len(nou))
 for iter_1, iter_label in zip(training_data, labels):
     plt.plot(timestamps, iter_1, "r-")
     plt.ylabel("Feature: "+iter_label)#("Number of users")
     plt.xlabel("Timestamp")
     plt.show()
 
+print(len(nou_tst))
+for iter_2, iter_label2 in zip(test_data, labels_5ghz):
+    plt.plot(timestamps_tst, iter_2, "c-")
+    plt.ylabel("Feature: "+iter_label2)#("Number of users")
+    plt.xlabel("Timestamp")
+    plt.show()
 
-short_nou = avg_sample(nou, 1800)
-short_bits = avg_sample(bits, 1800)
-short_pktNum = avg_sample(pktNum, 1800)
-short_sigS = avg_sample(sigS, 1800)
-short_dR = avg_sample(dataRate, 1800)
 
-'''Uncomment to plot the sampled data
+'''
+test_upload = []
+    
+for p in range(len(timestamps)):
+    db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
+    key_holder = db.getNextKey(table_name_test)
+    print(key_holder)
+    if(key_holder == None):
+        key_holder = 0
+    test_upload = [str(p), str(timestamps[p]), str(nou[p]), str(bits[p]), str(pktNum[p]), str(sigS[p]), str(dataRate[p]), str(phyB[p]), str(phyN[p])]
+    print(test_upload)
+    db.writeData_5ghz(table_name_test, test_upload)
+    db.disconnect()
+
+test_upload2 = []
+    
+for p in range(len(timestamps_tst)):
+    db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
+    key_holder = db.getNextKey(table_name_test2)
+    print(key_holder)
+    if(key_holder == None):
+        key_holder = 0
+    test_upload2 = [str(p), str(timestamps_tst[p]), str(nou_tst[p]), str(bits_tst[p]), str(pkt_tst[p]), str(sigS_tst[p]), str(dR_tst[p]), str(b_tst[p]), str(n_tst[p])]
+    print(test_upload2)
+    db.writeData_5ghz(table_name_test2, test_upload2)
+    db.disconnect()
+'''
+'''#Uncomment to see sampled features
+sample_rate = 1800
+
+sampled_nou = avg_sample(nou, sample_rate)
+sampled_bits = avg_sample(bits, sample_rate)
+sampled_pktNum = avg_sample(pktNum, sample_rate)
+sampled_sigS = avg_sample(sigS, sample_rate)
+sampled_dR = avg_sample(dataRate, sample_rate)
+
+#Uncomment to plot the sampled data
 plt.title("Collected features with half-hour sample rate")
 plt.xlabel("Time")
-plt.ylabel("Signal Strength")
-plt.plot(short_nou, "r-", label="Number of users")
-plt.plot(short_bits, "b--", label="Bits")
-plt.plot(short_pktNum, "g-", label="Number of packets")
-plt.plot(short_sigS, "y--", label="Signal strength")
-plt.plot(short_dR, "c--", label="Data rate")
-plt.legend()
-plt.show()
+
+sampled_features = [sampled_nou, 
+                    sampled_bits, 
+                    sampled_pktNum, 
+                    sampled_sigS, 
+                    sampled_dR
+                    ]
+plot_colors = ["r",
+               "b",
+               "g",
+               "y",
+               "c"
+               ]
+for plot_iter in range(5):
+    feature_plot(labels[plot_iter], sampled_features[plot_iter], plot_colors[plot_iter])
 '''
-'''
+
+'''#Uncomment to see Gaussian process
 #Number of test samples
 sample_start = 0
-sample_end = 100
+sample_end = 300
 #Window size
 sample_window = 15
+#Sample rate for the Gaussian Process
+sample_rate_GP = 60
 
 
 kernel1 = LK(sigma_0 = 1, sigma_0_bounds = (1e-1, 1e1))
@@ -267,7 +347,7 @@ gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
 #print gp.get_params()['kernel']
 
 for z in range(len(labels)): #len(labels)
-    total_samp, Xtr, Ytr, Xtst, Ycomp, Ytst = GP_prep(training_data[z], test_data[z], 60, sample_start, sample_end, sample_window)
+    total_samp, Xtr, Ytr, Xtst, Ycomp, Ytst = GP_prep(training_data[z], test_data[z], sample_rate_GP, sample_start, sample_end, sample_window)
     
     #print(Xtr.shape, Ytr.shape, Xtst.shape, Ytst.shape)
     #Testing if it overfits

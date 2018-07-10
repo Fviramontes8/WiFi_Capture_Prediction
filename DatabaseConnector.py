@@ -51,7 +51,8 @@ class DatabaseConnect(object):
         ## @var  conn
         #Variable that determines if connection has been established with database
        
-        self.data_2ghz_query = "(Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" 
+        self.data_2ghz_query = "(Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        self.data_5ghz_query = "(Key, ts, nou, bits, pkt_num, sigs, dr, phya, phyn) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
         ## @var data_2ghz_query
         #Variable that is used for tables that contain wifi data on the 2ghz spectrum, query: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn)
         
@@ -80,7 +81,7 @@ class DatabaseConnect(object):
             else:
                 print("expection called")
                 raise Exception('Section {0} not found in the {1} file'.format(section, filename))
-    
+            print(db)
             return db
         else:
             print("Configuration file does not exist")
@@ -126,13 +127,17 @@ class DatabaseConnect(object):
             sql_query = sql.SQL("INSERT INTO {} " + query).format(sql.Identifier(table_name))
                 
             # need to discriminate single and multiple data
-            cur.executemany(sql_query, new_data)
+            cur.execute(sql_query, new_data)
+            #cur.executemany(sql_query, new_data)
         
             self.conn.commit()
     
-    def writeData(self, table_name, new_table_data):
+    def writeData_2ghz(self, table_name, new_table_data):
         '''Writes data to table of PostgreSQL database, input must be in this from: Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn. Where all values are integers'''
         self._writeData(table_name, self.data_2ghz_query, new_table_data)
+    def writeData_5ghz(self, table_name, new_table_data):
+        '''Writes data to table of PostgreSQL database, input must be in this from: Key, ts, nou, bits, pkt_num, sigs, dr, phya, phyn. Where all values are integers'''
+        self._writeData(table_name, self.data_5ghz_query, new_table_data)
     #'''
     def writeDeviceData(self, table_name, table_data):
         '''This function takes a list of [key, mac addr, ip addr] specified by table_data and adds it to database specified by table_name'''
@@ -150,10 +155,14 @@ class DatabaseConnect(object):
             cur = self.conn.cursor()
             query = sql.SQL("delete from {} where Key={}").format(sql.Identifier(table_name), sql.Identifier(key))
             cur.execute(query)
+            
+    def test_connect(self, database_name, username, host_name, password_name):
+        self.conn = psycopg2.connect(database=database_name, user=username, host=host_name, password=password_name)
                
     def connect(self):
         '''Tries to establish a connection with the database'''
         try:
+            print("Hennlos")
             params = self.config()
     
             if params is None:
@@ -172,13 +181,26 @@ class DatabaseConnect(object):
         print("Disconnected.")
     
 
-    def createDataTable(self, table_name):
-        '''Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values'''
+    def createDataTable_2ghz(self, table_name):
+        '''Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values.
+        This is a template for statistics that we available in the 2.4GHz spectrum of Wi-Fi'''
         ##@var table_name
         #Name of the table the user wants to get data from in database
         if self._checkConnection():
             #moving key->value to post processing
             args = "(Key INT PRIMARY KEY, ts INT, nou INT, bits INT, pkt_num INT, sigS INT, dr INT, phyb INT, phyg INT, phyn INT)"
+            query = sql.SQL("CREATE TABLE {} " + args).format(sql.Identifier(table_name))            
+            self.conn.cursor().execute(query)
+            self.conn.commit()
+            
+    def createDataTable_5ghz(self, table_name):
+        '''Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values.
+        This is a template for statistics that we available in the 5GHz spectrum of Wi-Fi'''
+        ##@var table_name
+        #Name of the table the user wants to get data from in database
+        if self._checkConnection():
+            #moving key->value to post processing
+            args = "(Key INT PRIMARY KEY, ts INT, nou INT, bits INT, pkt_num INT, sigS INT, dr INT, phya INT, phyn INT)"
             query = sql.SQL("CREATE TABLE {} " + args).format(sql.Identifier(table_name))            
             self.conn.cursor().execute(query)
             self.conn.commit()
