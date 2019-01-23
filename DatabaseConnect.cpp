@@ -80,8 +80,34 @@ int DatabaseConnect::deleteTableContent(std::string table_name) {
  * 
  * Returns a print statement saying that the table was made.
  */
-int DatabaseConnect::makeTable(std::string table_name) {
+int DatabaseConnect::makeTable2GHz(std::string table_name) {
 	std::string sql_query = "Create Table "+ table_name +"(Key int PRIMARY KEY, ts int, NoU int, bits int, pkt_num int, sigS int, dR int, phyb int, phyg int, phyn int)";
+	PQexec(conn, sql_query.c_str());
+	std::cout << "Made table: " << table_name << std::endl;
+	//To avoid memory leakage
+	PQclear(PQexec(conn, sql_query.c_str()));
+	return 0;
+}
+
+/**
+ * @brief Given a string input this function will make a table under the name of the input string. 
+ * 
+ * It will have these columns (all integers):
+ * 
+ * Key,
+ * Timestamp,
+ * Number of Users,
+ * Bits,
+ * Number of Packets,
+ * Average signal strength,
+ * Average data rate,
+ * Bits sent via 802.11a,
+ * Bits sent via 802.11n
+ * 
+ * Returns a print statement saying that the table was made.
+ */
+int DatabaseConnect::makeTable5GHz(std::string table_name) {
+	std::string sql_query = "Create Table "+ table_name +"(Key int PRIMARY KEY, ts int, NoU int, bits int, pkt_num int, sigS int, dR int, phya int, phyn int)";
 	PQexec(conn, sql_query.c_str());
 	std::cout << "Made table: " << table_name << std::endl;
 	//To avoid memory leakage
@@ -108,12 +134,36 @@ int DatabaseConnect::getNextKey(std::string key) {
  * std::vector<std::string> data;
  * data = ["1525368933", "45", "5682987", "61", "-76", "12", "87654",
  *           "6842", "4814587"];
- * writeData("table_name", "5", data);
+ * writeData2GHz("table_name", "5", data);
  */
-int DatabaseConnect::writeData(std::string table_name, std::string key, std::vector<std::string> data)
+int DatabaseConnect::writeData2GHz(std::string table_name, std::string key, std::vector<std::string> data)
 { 
 	//String to write to database in sql syntax
 	std::string sql_query = "INSERT INTO "+ table_name +" (Key, ts, NoU, bits, pkt_num, sigS, dR, phyb, phyg, phyn) VALUES('"+key+"', '"+data[0]+"', '"+data[1]+"', '"+data[2]+"', '"+data[3]+"', '"+data[4]+"', '"+data[5]+"', '"+data[6]+"', '"+data[7]+"', '"+data[8]+"')";
+	
+	//Executes command to write to database
+	PQexec(conn, sql_query.c_str());
+	std::cout << "Wrote to database" << std::endl;
+	//To avoid memory leakage
+	PQclear(PQexec(conn, sql_query.c_str()));
+	return 0;
+}
+
+/**The input takes a string and a vector of 8 "int" elements 
+ * (converted to strings) as an input and writes the data from the
+ * vector to a database of name of the string given. If there is there
+ * is any data in the database beforehand, it will add to the database
+ * without overriding the data that was there before.
+ * Example:
+ * std::vector<std::string> data;
+ * data = ["1525368933", "45", "5682987", "61", "-76", "12", "87654",
+ *           "4814587"];
+ * writeData5GHz("table_name", "5", data);
+ */
+int DatabaseConnect::writeData5GHz(std::string table_name, std::string key, std::vector<std::string> data)
+{ 
+	//String to write to database in sql syntax
+	std::string sql_query = "INSERT INTO "+ table_name +" (Key, ts, NoU, bits, pkt_num, sigS, dR, phya, phyn) VALUES('"+key+"', '"+data[0]+"', '"+data[1]+"', '"+data[2]+"', '"+data[3]+"', '"+data[4]+"', '"+data[5]+"', '"+data[6]+"', '"+data[7]+"')";
 	
 	//Executes command to write to database
 	PQexec(conn, sql_query.c_str());

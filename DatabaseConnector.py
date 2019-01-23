@@ -2,7 +2,7 @@
 '''
 Authors: Seth Decker, Francisco Viramontes
 
-Description: This code interfaces to a PostgreSQL database. It can build tables, 
+Description: This code interfaces to a PostgreSQL database. It can build tables,
 read tables, and write to tables.
 
 
@@ -10,25 +10,25 @@ Example:
 
     #Read data table
 >>> import DatabaseConnect as dc
-    
+
     database = dc.DatabaseConnect()
-    
+
     database.connect()
-    
+
     print(database.readDataTable())
-    
+
     database.disconnect()
 
 
     #Write data table
 >>> import DatabaseConnect as dc
-    
+
     database = dc.DatabaseConnect()
-    
+
     data_table_name = "example_table"
 
     data_list = []
-    data_list.append((1, 2, "dummy", "dummy", "dummy", "dummy", 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24))  
+    data_list.append((1, 2, "dummy", "dummy", "dummy", "dummy", 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24))
     data_list.append((2, 3, "dummy", "dummy", "dummy", "dummy", 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25))
 
     database.writeData(data_table_name, data_list)
@@ -50,20 +50,27 @@ class DatabaseConnect(object):
         self.conn = None
         ## @var  conn
         #Variable that determines if connection has been established with database
-       
+
         self.data_2ghz_query = "(Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         self.data_5ghz_query = "(Key, ts, nou, bits, pkt_num, sigs, dr, phya, phyn) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
         ## @var data_2ghz_query
         #Variable that is used for tables that contain wifi data on the 2ghz spectrum, query: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn)
-        
+
     def _checkConnection(self):
         '''Checks connection with PostgreSQL database'''
         if self.conn is None:
             print("No connection established. Use obj.connect() to connect to database.")
             return False
         else:
-            return True  
-    
+            return True
+    def drop_table(self, table_name):
+        '''Deletes table_name from database'''
+        if self._checkConnection():
+            cur = self.conn.cursor()
+            query = sql.SQL("DROP TABLE {}").format(sql.Identifier(table_name))
+            cur.execute(query)
+            self.conn.commit()
+
     def _config(self, filename='database.ini', section='postgresql'):
         '''Reads database.ini file from current directory to get initialization values to connect to database'''
         # create a parser
@@ -71,7 +78,7 @@ class DatabaseConnect(object):
         # read config file
         if os.path.exists(filename):
             parser.read(filename)
-    
+
             # get section, default to postgresql
             db = {}
             if parser.has_section(section):
@@ -81,7 +88,6 @@ class DatabaseConnect(object):
             else:
                 print("expection called")
                 raise Exception('Section {0} not found in the {1} file'.format(section, filename))
-            print(db)
             return db
         else:
             print("Configuration file does not exist")
@@ -92,7 +98,7 @@ class DatabaseConnect(object):
         cursor.execute("select exists(select * from information_schema.tables where table_name=%s)", (table_name,))
         return cursor.fetchone()[0]
 
-    ## Public Functions    
+    ## Public Functions
     def getNextKey(self, table_name):
         '''Gets the next key needed to upload to the database, insures that there are no key conflicts'''
         if self._checkConnection():
@@ -102,7 +108,7 @@ class DatabaseConnect(object):
             latest_key = cur.fetchall()
             res_list = [x[0] for x in latest_key]
             return res_list[0]
-    
+
     def readTable(self, table_name):
         '''Returns the entire content of table_name'''
         if self._checkConnection():
@@ -110,28 +116,28 @@ class DatabaseConnect(object):
             query = sql.SQL("select * from {} as a").format(sql.Identifier(table_name))
             cur.execute(query)
             print("Data retrieved from table: " + table_name)
-        
+
             output = cur.fetchall()
-            
+
             return output
         return
-    
+
     def _writeData(self, table_name, query, new_data):
         #print(query)
         #print(table_name)
         #print(new_data)
-        
+
         if self._checkConnection():
             cur = self.conn.cursor()
-            
+
             sql_query = sql.SQL("INSERT INTO {} " + query).format(sql.Identifier(table_name))
-                
+
             # need to discriminate single and multiple data
             cur.execute(sql_query, new_data)
             #cur.executemany(sql_query, new_data)
-        
+
             self.conn.commit()
-    
+
     def writeData_2ghz(self, table_name, new_table_data):
         '''Writes data to table of PostgreSQL database, input must be in this from: Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn. Where all values are integers'''
         self._writeData(table_name, self.data_2ghz_query, new_table_data)
@@ -148,28 +154,27 @@ class DatabaseConnect(object):
             cur.execute(query, table_data)
             self.conn.commit()
     #'''
-        
+
     def _deleteData(self, key, table_name):
         '''Deletes data specified by key and table_name'''
         if self._checkConnection():
             cur = self.conn.cursor()
             query = sql.SQL("delete from {} where Key={}").format(sql.Identifier(table_name), sql.Identifier(key))
             cur.execute(query)
-            
+
     def test_connect(self, database_name, username, host_name, password_name):
         self.conn = psycopg2.connect(database=database_name, user=username, host=host_name, password=password_name)
-               
+
     def connect(self):
         '''Tries to establish a connection with the database'''
         try:
-            print("Hennlos")
-            params = self.config()
-    
+            params = self._config()
+
             if params is None:
                 print("Unable to connect to the database! No Params.")
                 return
-    
-            self.conn = psycopg2.connect(**params)
+
+            self.conn = psycopg2.connect(database=params["database"], user=params['user'], host=params["host"], password=params["password"])
             print("Connected.")
         except:
             print("Unable to connect to the database!")
@@ -179,7 +184,7 @@ class DatabaseConnect(object):
         if self.conn is not None:
             self.conn.close()
         print("Disconnected.")
-    
+
 
     def createDataTable_2ghz(self, table_name):
         '''Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values.
@@ -189,10 +194,10 @@ class DatabaseConnect(object):
         if self._checkConnection():
             #moving key->value to post processing
             args = "(Key INT PRIMARY KEY, ts INT, nou INT, bits INT, pkt_num INT, sigS INT, dr INT, phyb INT, phyg INT, phyn INT)"
-            query = sql.SQL("CREATE TABLE {} " + args).format(sql.Identifier(table_name))            
+            query = sql.SQL("CREATE TABLE {} " + args).format(sql.Identifier(table_name))
             self.conn.cursor().execute(query)
             self.conn.commit()
-            
+
     def createDataTable_5ghz(self, table_name):
         '''Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values.
         This is a template for statistics that we available in the 5GHz spectrum of Wi-Fi'''
@@ -201,7 +206,7 @@ class DatabaseConnect(object):
         if self._checkConnection():
             #moving key->value to post processing
             args = "(Key INT PRIMARY KEY, ts INT, nou INT, bits INT, pkt_num INT, sigS INT, dr INT, phya INT, phyn INT)"
-            query = sql.SQL("CREATE TABLE {} " + args).format(sql.Identifier(table_name))            
+            query = sql.SQL("CREATE TABLE {} " + args).format(sql.Identifier(table_name))
             self.conn.cursor().execute(query)
             self.conn.commit()
 
@@ -211,7 +216,7 @@ class DatabaseConnect(object):
         #print DatabaseConnect.getTableNames()
         if self._checkConnection():
             cur = self.conn.cursor()
-    
+
             cur.execute("select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';")
             out = cur.fetchall()
             table_names = [x[0] for x in out]

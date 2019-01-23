@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 	 * 	analysis for that second. 
 	 */
 	//Opening connection with database
-	DatabaseConnect db("postgres", "129.24.26.75", "postgres", "Cerculsihr4T");
+	DatabaseConnect db("postgres", "18.221.41.211", "postgres", "Cerculsihr4T");
 	db.connect();
 	
 	std::string table_name;///Declaring table name to write to
@@ -82,11 +82,11 @@ int main(int argc, char* argv[]) {
 			int ts;
 			
 			/* Vector of integers that keeps track of these characteristics:
-			 * Timestamp, Number of Unique Users, Total Bits sent,
-			 * Number of Packets sent, Average Signal Strength, Average 
-			 * Data Rate, Bits of 802.11 standards
+			 *Vector contains these features: Timestamp, Number of Unique Users, 
+			 *Total Bits sent, Number of Packets sent, Average Signal Strength, 
+			 *Average Data Rate, 802.11a bits, 802.11n bits
 			 */
-			std::vector<int> statVect = {0,0,0,0,0,0,0,0,0};///Vector contains these features: Timestamp, Number of Unique Users, Total Bits sent, Number of Packets sent, Average Signal Strength, Average Data Rate, 802.11a bits, 802.11n bits
+			std::vector<int> statVect = {0,0,0,0,0,0,0,0};
 			
 			//Vector for determining unique MAC addresses
 			std::vector<std::string> uniqueMAC;
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
 						}
 						else {
 							//std::cout << "802.11n" << std::endl << std::endl;
-							statVect[8] += pdu.size();
+							statVect[7] += pdu.size();
 						}
 						
 					}
@@ -292,8 +292,8 @@ int main(int argc, char* argv[]) {
 					//std::cout << "Number of users " << statVect[1] << std::endl;
 					
 					//String vector to upload the data to the database
-					std::vector<std::string> stringVect(9);
-					for(int i = 0; i < 9; i++) {
+					std::vector<std::string> stringVect(8);
+					for(int i = 0; i < 8; i++) {
 						stringVect[i] = std::to_string(statVect[i]);
 					}
 					/* //To see contents of the Vector
@@ -306,10 +306,10 @@ int main(int argc, char* argv[]) {
 					//Only write to database if there is user activity in the pcap file
 					if(statVect[1] > 0) {
 						//Creates table with the name as the variable t_name
-						//db.makeTable("");
+						//db.makeTable5GHz("");
 						std::string keyString = std::to_string(z);
 						//First input to choose table to write to, second the vector of data
-						db.writeData(table_name, keyString, stringVect);
+						db.writeData5GHz(table_name, keyString, stringVect);
 						std::cout << "Wrote to table" << std::endl;
 						z++;
 						std::cout << std::endl;

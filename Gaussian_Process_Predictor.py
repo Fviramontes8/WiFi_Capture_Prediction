@@ -165,25 +165,29 @@ n_tst = []
 db = dc.DatabaseConnect()
 #db.connect()
 #print("Hello")
-db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
-#print("Henlo")
-train_table = "pi_sun"
-test_table = "pi_sun2"
+db.test_connect(database_name="postgres", username="postgres", host_name="18.221.41.211", password_name="Cerculsihr4T")
+print("Henlo")
+yeet = db.getTableNames();
+train_table = "pi_sat2"
+test_table = "5pi_mon2"
 
 train = db.readTable(train_table)
 test = db.readTable(test_table)
 
-#create_table_name = "first_test3"
+#create_table_name = "5pi_sun3"
 #db.createDataTable_5ghz(create_table_name)
 #print(db.getTableNames())
 
-#table_name_test = "5pi_thurs2"
+table_name_test = "5pi_sat2"
 #table_name_test2 = "5pi_fri2"
 #test = db.readTable(table_name_test)
-#db.createDataTable_5ghz(table_name_test)
+#
+db.createDataTable_5ghz(table_name_test)
 #db.createDataTable_5ghz(table_name_test2)
 
 db.disconnect()
+
+print(yeet)
 
 #Data from table (in form of tuple)
 #k and l are just dummy arrays
@@ -253,9 +257,9 @@ labels_5ghz = ["Number of users",
                "802.11n bits"
                ]
 
-
-
+'''
 print(len(nou))
+
 for iter_1, iter_label in zip(training_data, labels):
     plt.plot(timestamps, iter_1, "r-")
     plt.ylabel("Feature: "+iter_label)#("Number of users")
@@ -268,13 +272,13 @@ for iter_2, iter_label2 in zip(test_data, labels_5ghz):
     plt.ylabel("Feature: "+iter_label2)#("Number of users")
     plt.xlabel("Timestamp")
     plt.show()
-
-
 '''
+
+
 test_upload = []
     
 for p in range(len(timestamps)):
-    db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
+    db.test_connect(database_name="postgres", username="postgres", host_name="18.221.41.211", password_name="Cerculsihr4T")
     key_holder = db.getNextKey(table_name_test)
     print(key_holder)
     if(key_holder == None):
@@ -283,7 +287,7 @@ for p in range(len(timestamps)):
     print(test_upload)
     db.writeData_5ghz(table_name_test, test_upload)
     db.disconnect()
-
+'''
 test_upload2 = []
     
 for p in range(len(timestamps_tst)):

@@ -25,12 +25,14 @@ private:
 	std::string username = "postgres";
 
 public:
-	int getNextKey(std::string);///<Gets next available key from database
-	int deleteTableContent(std::string);///<Deletes all table content from table specified by the user
-	int makeTable(std::string);///<Creates a table with name specified by user
-	int writeData(std::string, std::string, std::vector<std::string>);///<Uploads a row of data to table specified by user
-	int connect();///<Connectes to database using credientials specified by DatabaseConnect(std::string, std::string, std::string, std::string)
-	int disconnect();///<Disconnects user from database
-	DatabaseConnect(std::string, std::string, std::string, std::string);///<User specifies credentials for connecting to database: database name, host ip address, username, password
-	DatabaseConnect();///<Initialzes DatabaseConnect class with default values(non-functioning)
+	int getNextKey(std::string);///Gets next available key from database
+	int deleteTableContent(std::string);///Deletes all table content from table specified by the user
+	int makeTable2GHz(std::string);///Creates a table with name specified by user, for 2.4GHz Wifi spectrum
+	int makeTable5GHz(std::string);///Creates a table with name specified by user, for 5GHz Wifi spectrum
+	int writeData2GHz(std::string, std::string, std::vector<std::string>);///Uploads a row of data to table specified by user
+	int writeData5GHz(std::string, std::string, std::vector<std::string>);///Uploads a row of data to table specified by user
+	int connect();///Connectes to database using credientials specified by DatabaseConnect(std::string, std::string, std::string, std::string)
+	int disconnect();///Disconnects user from database
+	DatabaseConnect(std::string, std::string, std::string, std::string);///User specifies credentials for connecting to database: database name, host ip address, username, password
+	DatabaseConnect();///Initialzes DatabaseConnect class with default values(non-functioning)
 };

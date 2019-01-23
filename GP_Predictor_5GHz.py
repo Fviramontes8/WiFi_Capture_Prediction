@@ -5,19 +5,19 @@
 Created on Fri Sep 01 11:06:34 2017
 
 @author Francisco Viramontes
+Todo: All three weeks in one go to predict one minute ahead
 '''
 import DatabaseConnector as dc
 import numpy as np
 np.set_printoptions(threshold=np.nan)
-#import scipy as sp
-#import pylab as pb
+from numpy.fft import fft, fftshift
+
 import matplotlib.pyplot as plt
-#from random import seed
 from sklearn.gaussian_process import GaussianProcessRegressor
-#from sklearn.gaussian_process.kernels import RBF
 from sklearn.gaussian_process.kernels import DotProduct as LK, WhiteKernel as WK
 from sklearn.gaussian_process.kernels import ConstantKernel as CK, Sum
-#from sklearn.gaussian_process.kernels import RationalQuadratic as RQ, ExpSineSquared as ESS 
+
+from scipy import signal
 
 def mean(values):
     '''Determines the mean of an array'''
@@ -48,7 +48,6 @@ def sub_sample(sample_arr, sample_size):
     while q < len(sample_arr):
         return_sample.append(new_sample[q])
         q += sample_size
-        
         if q >= len(sample_arr) - 1:
             '''
             q = len(sample_arr) - 1
@@ -59,6 +58,7 @@ def sub_sample(sample_arr, sample_size):
     return return_sample
 
 def avg_sample(sample_arr, sample_size):
+    print(sample_arr, sample_size)
     '''Gets a chunk (like 5 values for example) takes the average of the chunk, then it is added to an array as one value. Continues to do this for the rest of the array.
     Example: array = [2, 2, 16, 4, 5, 15]
     result_value = avg_sample(array, 4)
@@ -104,10 +104,10 @@ def grab_nz(array, n ,z):
         return 0
 
 #(nou, nou_tst, 60, 0, 100, 15)
-def GP_prep(train, test, avg_samp, sub_samp_begin, sub_samp_end, window):
-    '''Inputs: train/test, which needs to be an array and each can be a different size, avg_samp is 
-     an integer that is going to sub-sample train/test (ex. if avg_samp = 60, it will sample every 60 values as one) so 
-     avg_samp < length of train/test, sub_samp_begin/sub_samp_end specifies the total bounds of what the user wants 
+def GP_prep_old(train, test, avg_samp, sub_samp_begin, sub_samp_end, window):
+    '''Inputs: train/test, which needs to be an array and each can be a different size, avg_samp is
+     an integer that is going to sub-sample train/test (ex. if avg_samp = 60, it will sample every 60 values as one) so
+     avg_samp < length of train/test, sub_samp_begin/sub_samp_end specifies the total bounds of what the user wants
      to keep from the sub-sampled result from avg_samp, so sub_samp_begin/sub_samp_end < length of train/test, the window
      specifies how wide the resultant matrix of this function is.
      Output: Length of total sampled values, training and test matricies that has window of averaged sampled values,
@@ -124,9 +124,9 @@ def GP_prep(train, test, avg_samp, sub_samp_begin, sub_samp_end, window):
     tr = np.atleast_2d([grab_nz(samp_train, m, n) for m, n in zip(range(samp_train.shape[0]), range(window, samp_train.shape[0]))])
     Xtr = np.atleast_2d(tr)
     ob = np.atleast_2d([[samp_train[i] for i in range(window, samp_train.shape[0])]])
-    Ytr = np.atleast_2d(ob).T 
-    samp_test = avg_sample(test, avg_samp) 
-    samp_test1 = grab_nz(samp_test, sub_samp_begin, sub_samp_end) 
+    Ytr = np.atleast_2d(ob).T
+    samp_test = avg_sample(test, avg_samp)
+    samp_test1 = grab_nz(samp_test, sub_samp_begin, sub_samp_end)
     feat_xtest = [grab_nz(samp_test1, m, n) for m, n in zip(range(samp_test1.shape[0]), range(window, samp_test1.shape[0]))]
     xtst =  np.atleast_2d(feat_xtest)
     feat_comp = [samp_train[i] for i in range(window, samp_test1.shape[0])]
@@ -143,251 +143,272 @@ def feature_plot(yaxis, feature, color):
     plt.plot(feature, color + "--")
     plt.legend()
     plt.show()
-    
-#Main:
-timestamps = []
-timestamps_tst = []
-nou = []
-nou_tst = []
-bits = []
-bits_tst = []
-pktNum = []
-pkt_tst = []
-sigS = []
-sigS_tst = []
-dataRate = []
-dR_tst = []
-phyA = []
-a_tst = []
-phyN = []
-n_tst = []
 
-db = dc.DatabaseConnect()
-#db.connect()
-#print("Hello")
-db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
-#print("Henlo")
-train_table = "5pi_sun"
-test_table = "5pi_sun2"
+def read_5ghz_day(table_name):
+    db = dc.DatabaseConnect()
 
-train = db.readTable(train_table)
-test = db.readTable(test_table)
+    #print(db.getTableNames())
 
-#create_table_name = "first_test3"
-#db.createDataTable_5ghz(create_table_name)
-#print(db.getTableNames())
+    #create_table_name = "first_test3"
+    #db.createDataTable_5ghz(create_table_name)
 
-#table_name_test = "5pi_thurs2"
-#table_name_test2 = "5pi_fri2"
-#test = db.readTable(table_name_test)
-#db.createDataTable_5ghz(table_name_test)
-#db.createDataTable_5ghz(table_name_test2)
-
-db.disconnect()
-
-#Data from table (in form of tuple)
-#k and l are just dummy arrays
-for k in sorted(train, key=lambda hello: hello[1]):
-    timestamps.append(int(k[1]))
-    nou.append(int(k[2]))
-    bits.append(int(k[3]))
-    pktNum.append(int(k[4]))
-    sigS.append(int(k[5]))
-    dataRate.append(int(k[6]))
-    phyA.append(int(k[7]))
-    phyN.append(int(k[8]))
-
-    
-for l in sorted(test, key=lambda yello: yello[1]):
-    timestamps_tst.append(int(l[1]))
-    nou_tst.append(int(l[2]))
-    bits_tst.append(int(l[3]))
-    pkt_tst.append(int(l[4]))
-    sigS_tst.append(int(l[5]))
-    dR_tst.append(int(l[6]))
-    a_tst.append(int(l[7]))
-    n_tst.append(int(l[8]))
-
-
-#print "Average number of users: " + str(int(mean(nou)))
-#print "Standard deviation: " + str(int(np.sqrt(sample_var(nou, mean(nou)))))
-
-training_data=[nou, 
-               bits, 
-               pktNum, 
-               sigS, 
-               dataRate, 
-               phyA,
-               phyN
-               ]
-
-test_data = [nou_tst, 
-             bits_tst, 
-             pkt_tst, 
-             sigS_tst, 
-             dR_tst, 
-             a_tst, 
-             n_tst
-             ]
-
-labels = ["Number of users", 
-          "Bits", 
-          "Number of Packets", 
-          "Signal Strength",
-          "Data Rate(MB)", 
-          "802.11a bits", 
-          "802.11n bits"
-          ]
-
-labels_5ghz = ["Number of users",
-               "Bits",
-               "Number of Packets",
-               "Signal Strength",
-               "Data Rate(MB)",
-               "802.11a bits",
-               "802.11n bits"
-               ]
-
-
-
-print(len(nou))
-for iter_1, iter_label in zip(training_data, labels):
-    plt.plot(timestamps, iter_1, "r-")
-    plt.ylabel("Feature: "+iter_label)#("Number of users")
-    plt.xlabel("Timestamp")
-    plt.show()
-
-print(len(nou_tst))
-for iter_2, iter_label2 in zip(test_data, labels_5ghz):
-    plt.plot(timestamps_tst, iter_2, "c-")
-    plt.ylabel("Feature: "+iter_label2)#("Number of users")
-    plt.xlabel("Timestamp")
-    plt.show()
-
-
-'''
-test_upload = []
-    
-for p in range(len(timestamps)):
-    db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
-    key_holder = db.getNextKey(table_name_test)
-    print(key_holder)
-    if(key_holder == None):
-        key_holder = 0
-    test_upload = [str(p), str(timestamps[p]), str(nou[p]), str(bits[p]), str(pktNum[p]), str(sigS[p]), str(dataRate[p]), str(phyB[p]), str(phyN[p])]
-    print(test_upload)
-    db.writeData_5ghz(table_name_test, test_upload)
+    db.test_connect(database_name="postgres", username="postgres", host_name="18.221.41.211", password_name="Cerculsihr4T")
+    data = db.readTable(table_name)
     db.disconnect()
 
-test_upload2 = []
-    
-for p in range(len(timestamps_tst)):
-    db.test_connect(database_name="postgres", username="postgres", host_name="129.24.26.110", password_name="Cerculsihr4T")
-    key_holder = db.getNextKey(table_name_test2)
-    print(key_holder)
-    if(key_holder == None):
-        key_holder = 0
-    test_upload2 = [str(p), str(timestamps_tst[p]), str(nou_tst[p]), str(bits_tst[p]), str(pkt_tst[p]), str(sigS_tst[p]), str(dR_tst[p]), str(b_tst[p]), str(n_tst[p])]
-    print(test_upload2)
-    db.writeData_5ghz(table_name_test2, test_upload2)
+    t_stamps = []
+    num_of_users = []
+    bits = []
+    '''
+    pktNum = []
+    sigStrength = []
+    data_rate = []
+    phyA_bits = []
+    phyN_bits= []
+    '''
+
+    for db_iter in sorted(data, key=lambda dummy:dummy[1]):
+        t_stamps.append(db_iter[1])
+        num_of_users.append(db_iter[2])
+        bits.append(db_iter[3])
+        '''
+        pktNum.append(db_iter[4])
+        sigStrength.append(db_iter[5])
+        data_rate.append(db_iter[6])
+        phyA_bits.append(db_iter[7])
+        phyN_bits.append(db_iter[8])
+        '''
+
+    return_data = [t_stamps,
+                   num_of_users,
+                   bits]
+    '''
+                   pktNum,
+                   sigStrength,
+                   data_rate,
+                   phyA_bits,
+                   phyN_bits]
+    '''
+    return return_data
+
+def butterfilter(input_arr, title, sampling=60):
+    z = (0.9/4) / sampling
+    begin_cutoff = 500
+    b, a = signal.butter(6, z, 'low')
+    xf = signal.lfilter(b, a, input_arr)
+    plt.plot(input_arr[begin_cutoff:])
+    plt.plot(xf[begin_cutoff:])
+    xf_copy = np.array(xf).copy()
+    xs = xf_copy[1::sampling]
+    x_axis_xs = np.array([i for i in range(len(xf))])
+    x_axis_xs = x_axis_xs[::sampling]
+    plt.title("Time series and filtered data for "+title)
+    plt.show()
+    print(len(xs))
+    return xs
+    '''
+    plt.plot(x_axis_xs[int(begin_cutoff/sampling):int(len(xf)/sampling)-1], xs[int(begin_cutoff/sampling):int(len(xf)/sampling)-1], 'c')
+    plt.title("Filtered data of "+title)
+    plt.show()
+    '''
+
+if __name__ == '__main__':
+
+    '''
+    db = dc.DatabaseConnect()
+    db.test_connect(database_name="postgres", username="postgres", host_name="18.221.41.211", password_name="Cerculsihr4T")
+    db.createDataTable_5ghz("5pi_sun4")
+    db.createDataTable_5ghz("5pi_mon4")
+    db.createDataTable_5ghz("5pi_tues4")
+    db.createDataTable_5ghz("5pi_wed4")
+    db.createDataTable_5ghz("5pi_thurs4")
+    db.createDataTable_5ghz("5pi_fri4")
+    db.createDataTable_5ghz("5pi_sat4")
+    print(db.getTableNames())
     db.disconnect()
-'''
-'''#Uncomment to see sampled features
-sample_rate = 1800
-
-sampled_nou = avg_sample(nou, sample_rate)
-sampled_bits = avg_sample(bits, sample_rate)
-sampled_pktNum = avg_sample(pktNum, sample_rate)
-sampled_sigS = avg_sample(sigS, sample_rate)
-sampled_dR = avg_sample(dataRate, sample_rate)
-
-#Uncomment to plot the sampled data
-plt.title("Collected features with half-hour sample rate")
-plt.xlabel("Time")
-
-sampled_features = [sampled_nou, 
-                    sampled_bits, 
-                    sampled_pktNum, 
-                    sampled_sigS, 
-                    sampled_dR
-                    ]
-plot_colors = ["r",
-               "b",
-               "g",
-               "y",
-               "c"
-               ]
-for plot_iter in range(5):
-    feature_plot(labels[plot_iter], sampled_features[plot_iter], plot_colors[plot_iter])
-'''
-
-#Uncomment to see Gaussian process
-#Number of test samples
-sample_start = 0
-sample_end = 1000
-#Window size
-sample_window = 10
-#Sample rate for the Gaussian Process
-sample_rate_GP = 30
+    '''
 
 
-kernel1 = LK(sigma_0 = 1, sigma_0_bounds = (1e-1, 1e1))
-kernel2 = CK(constant_value=1)
-kernel3 = WK(0.1)
-kernel = Sum(kernel1, kernel2)
-kernel = Sum(kernel, kernel3)
-#1e-1 for linear + constant, 1e-3 for RBF
-gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
-                              normalize_y=False, alpha=1e-1)
-#print gp.get_params()['kernel']
-training_samples = []
-for z in range(len(labels)): #len(labels)
-    total_samp, Xtr, Ytr, Xtst, Ycomp, Ytst, training_samples = GP_prep(training_data[z], test_data[z], sample_rate_GP, sample_start, sample_end, sample_window)
-    
-    #print(Xtr.shape, Ytr.shape, Xtst.shape, Ytst.shape)
-    #Testing if it overfits
-    Xtr_1 = [Xtr[i] for i in range(sample_window, sample_end)]
-    
-    #GP_ysample = gp.sample_y(Xtr_1, 1)
-    try:
-        gp.fit(Xtr, Ytr)
-        print "marginal likelihood:", gp.log_marginal_likelihood()
-        y_pred, y_sigma = gp.predict(Xtst, return_std=True)
-        #print(y_pred.shape)
-        
-        result_time = [g+1 for g in range(sample_window, sample_end)]
-        training_xaxis = [h for h in range(total_samp)]
-        
-        s = "training interval between "+str(result_time[0])+" and "+str(result_time[-1])+\
-        " minutes\n window is "+str(sample_window)
-        plt.xlabel(s=s)
-        ylab = labels[z]
-        plt.ylabel(ylab)
-        plt.title(s="Training data with feature "+str(ylab))
-        plt.plot(training_xaxis, training_samples, "g-", label="training")
-        plt.legend()
-        plt.show()
-        
-        GP_xlabel = "time interval between "+str(result_time[0])+" and "+str(result_time[-1])+\
-        " minutes\n window is "+str(sample_window)
-        plt.xlabel(s=GP_xlabel)
-        GP_ylabel = labels[z]
-        plt.ylabel(GP_ylabel)
-        GP_dataplot_title = "Using "+str(gp.get_params()['kernel'])+" kernel\nwith "+str(total_samp)+" averaged training samples\nand "+str(sample_end)+\
-        " averaged test samples"
-        plt.title(s=GP_dataplot_title)
-        
-        #ploting data
-        #plt.plot(result_time, GP_ysample, "c-", label= "kernel sample")
-        plt.plot(result_time, y_pred.T[0], "c-", label="predicted")
-        plt.plot(result_time, Ytst.T[0], "y-", label="real")
-        plt.fill(np.concatenate([result_time, result_time[::-1]]),
-                 np.concatenate([y_pred-1.96*y_sigma,
-                                (y_pred+1.96*y_sigma)[::-1]]),
-                 alpha=.5, fc='b', ec='none')
-        plt.legend()
-        plt.show()
-        
-    except:
-        print "Feature "+str(labels[z])+" did not work!"
-        continue
+    #sun1 = read_5ghz_day("5pi_sun")
+    sun2 = read_5ghz_day("5pi_sun2")
+
+    mon1 = read_5ghz_day("5pi_mon")
+    #mon2 = read_5ghz_day("5pi_mon2")
+
+    #tues1 = read_5ghz_day("5pi_tues")
+    #tues2 = read_5ghz_day("5pi_tues2")
+
+    #wed1 = read_5ghz_day("5pi_wed")
+    #wed2 = read_5ghz_day("5pi_wed2")
+
+    #thurs1 = read_5ghz_day("5pi_thurs")
+    #thurs2 = read_5ghz_day("5pi_thurs")
+
+    #fri = read_5ghz_day("5pi_fri")
+    #fri2 = read_5ghz_day("5pi_fri2")
+
+    #sat = read_5ghz_day("5pi_sat")
+    #sat2 = read_5ghz_day("5pi_sat2")
+
+
+    #wed3 = read_5ghz_day("5pi_wed3")
+    #f_wed3 = []
+
+    f_sun1 = []
+    f_sun2 = []
+    f_mon1 = []
+    f_mon2 = []
+
+    f_tues1 = []
+
+    labels = ["Number of users",
+              "Bits",
+              "Number of Packets",
+              "Signal Strength",
+              "Data Rate(MB)",
+              "802.11a bits",
+              "802.11n bits"
+              ]
+
+    labels_5ghz = ["Number of users",
+                   "Bits",
+                   "Number of Packets",
+                   "Signal Strength",
+                   "Data Rate(MB)",
+                   "802.11a bits",
+                   "802.11n bits"
+                   ]
+    '''
+    for q in range(len(sun1)-1):
+        f_sun1.append(butterfilter(sun1[q+1], labels_5ghz[q]))
+    '''
+    for p in range(len(sun2)-1):
+        f_sun2.append(butterfilter(sun2[p+1], labels_5ghz[p]))
+
+    for n in range(len(mon1)-1):
+        f_mon1.append(butterfilter(mon1[n+1], labels_5ghz[n]))
+    '''
+    for m in range(len(mon2)-1):
+        f_mon2.append(butterfilter(mon2[m+1], labels_5ghz[m]))
+    '''
+    '''
+    for l in range(len(wed3)-1):
+        f_wed3.append(butterfilter(wed3[l+1], labels_5ghz[l]))
+    '''
+
+    #print(len(f_sun1), len(f_sun2), len(f_mon1), len(f_mon2))
+    #print(len(f_sun1[0]), len(f_sun1[1]))
+    #sun1_tstamp = sun1[0][0::60]
+
+    #sun2_tstamp = sun2[0][0::60]
+    #mon1_tstamp = mon1[0][0::60]
+    #mon2_tstamp = mon2[0][0::60]
+
+
+    '''#Uncomment to see sampled features
+    sample_rate = 1800
+
+    sampled_nou = avg_sample(nou, sample_rate)
+    sampled_bits = avg_sample(bits, sample_rate)
+    sampled_pktNum = avg_sample(pktNum, sample_rate)
+    sampled_sigS = avg_sample(sigS, sample_rate)
+    sampled_dR = avg_sample(dataRate, sample_rate)
+    print(sampled_nou.shape)
+    print(sampled_bits.shape)
+    print(sampled_pktNum.shape)
+    print(sampled_sigS)
+    print(sampled_dR)
+    '''
+
+    '''
+    #Uncomment to plot the sampled data
+    plt.title("Collected features with half-hour sample rate")
+    plt.xlabel("Time")
+
+    sampled_features = [sampled_nou,
+                        sampled_bits,
+                        sampled_pktNum,
+                        sampled_sigS,
+                        sampled_dR
+                        ]
+    plot_colors = ["r",
+                   "b",
+                   "g",
+                   "y",
+                   "c"
+                   ]
+    for plot_iter in range(5):
+        feature_plot(labels[plot_iter], sampled_features[plot_iter], plot_colors[plot_iter])
+    '''
+
+    '''#Uncomment to see Gaussian process
+    #Number of test samples
+    sample_start = 0
+    sample_end = 100
+    #Window size
+    sample_window = 10
+    #Sample rate for the Gaussian Process
+    sample_rate_GP = 30
+
+
+    kernel1 = LK(sigma_0 = 1, sigma_0_bounds = (1e-1, 1e1))
+    kernel2 = CK(constant_value=1)
+    kernel3 = WK(0.1)
+    kernel = Sum(kernel1, kernel2)
+    kernel = Sum(kernel, kernel3)
+    #1e-1 for linear + constant, 1e-3 for RBF
+    gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
+                                  normalize_y=False, alpha=1e-1)
+    #print gp.get_params()['kernel']
+    training_samples = []
+    for z in range(len(labels)): #len(labels)
+        total_samp, Xtr, Ytr, Xtst, Ycomp, Ytst, training_samples = GP_prep(training_data[z], test_data[z], sample_rate_GP, sample_start, sample_end, sample_window)
+
+        #print(Xtr.shape, Ytr.shape, Xtst.shape, Ytst.shape)
+        #Testing if it overfits
+        Xtr_1 = [Xtr[i] for i in range(sample_window, sample_end)]
+
+        #GP_ysample = gp.sample_y(Xtr_1, 1)
+        try:
+            gp.fit(Xtr, Ytr)
+            print("marginal likelihood:", gp.log_marginal_likelihood())
+            y_pred, y_sigma = gp.predict(Xtst, return_std=True)
+            #print(y_pred.shape)
+
+            result_time = [g+1 for g in range(sample_window, sample_end)]
+            training_xaxis = [h for h in range(total_samp)]
+
+            s = "training interval between "+str(result_time[0])+" and "+str(result_time[-1])+\
+            " minutes\n window is "+str(sample_window)
+            plt.xlabel(s=s)
+            ylab = labels[z]
+            plt.ylabel(ylab)
+            plt.title(s="Training data with feature "+str(ylab))
+            plt.plot(training_xaxis, training_samples, "g-", label="training")
+            plt.legend()
+            plt.show()
+
+            GP_xlabel = "time interval between "+str(result_time[0])+" and "+str(result_time[-1])+\
+            " minutes\n window is "+str(sample_window)
+            plt.xlabel(s=GP_xlabel)
+            GP_ylabel = labels[z]
+            plt.ylabel(GP_ylabel)
+            GP_dataplot_title = "Using "+str(gp.get_params()['kernel'])+" kernel\nwith "+str(total_samp)+" averaged training samples\nand "+str(sample_end)+\
+            " averaged test samples"
+            plt.title(s=GP_dataplot_title)
+
+            #ploting data
+            #plt.plot(result_time, GP_ysample, "c-", label= "kernel sample")
+            plt.plot(result_time, y_pred.T[0], "c-", label="predicted")
+            plt.plot(result_time, Ytst.T[0], "y-", label="real")
+            plt.fill(np.concatenate([result_time, result_time[::-1]]),
+                     np.concatenate([y_pred-1.96*y_sigma,
+                                    (y_pred+1.96*y_sigma)[::-1]]),
+                     alpha=.5, fc='b', ec='none')
+            plt.legend()
+            plt.show()
+
+        except:
+            print("Feature "+str(labels[z])+" did not work!")
+            continue
+        '''
