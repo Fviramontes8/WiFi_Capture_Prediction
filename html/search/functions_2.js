@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['connect',['connect',['../classDatabaseConnect.html#a9e0c28f4d98a60273eecaac77a596878',1,'DatabaseConnect::connect()'],['../classDatabaseConnector_1_1DatabaseConnect.html#a9d31fcb5c4b23c692a0488ab8633ba78',1,'DatabaseConnector.DatabaseConnect.connect()']]],
-  ['covariance',['covariance',['../namespacetime__series2.html#afb06c28c1769268d33ce21dfae5d064a',1,'time_series2']]],
-  ['createdatatable',['createDataTable',['../classDatabaseConnector_1_1DatabaseConnect.html#afd3c4da0bc49a45cf43f243bca6fe7f6',1,'DatabaseConnector::DatabaseConnect']]]
+  ['butterfilter',['butterfilter',['../namespaceECE541__project__viramontes.html#afbc46aecc958bed538ea9612c52539fd',1,'ECE541_project_viramontes.butterfilter()'],['../namespaceGP__Predictor__5GHz.html#a99dec69c47167c1b59f2926c50079586',1,'GP_Predictor_5GHz.butterfilter()'],['../namespaceGP__Predictor__5GHz__old.html#a361e8dfe2c3f66c1f3b8cd90c21361dd',1,'GP_Predictor_5GHz_old.butterfilter()']]]
 ];

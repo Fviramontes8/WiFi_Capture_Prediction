@@ -35,6 +35,17 @@ def grab_nz(array, n ,z):
         return 0
 
 def GP_Prep(training, testing, window):
+    '''Inputs: train/test, which needs to be an array and each can be a different size, window,
+     which specifies how wide the resultant matrix of this function is.
+     Output: Training and test matricies that has window of the given input values (Xtr, Ytr, Xtst),
+         and a graph-able array of what the training values look like (ycomp)
+     Example: window = 5, length of array input (both train and test are same size in this example) = n
+         [x_0 x_1 ... x_4]          [x_5]
+         [x_1 x_2 ... x_5]          [x_6]
+     x = [x_2 x_3 ... x_6]     y =  [x_7]
+         [... ... ... ...]          [...]
+         [x_n-5-1... ... x_n-1]     [x_n]
+         '''
     Xtr = np.atleast_2d([grab_nz(training, m, n) for m, n in zip(range(training.shape[0]), range(window, training.shape[0]))])
     Ytr = np.atleast_2d([[training[i] for i in range(window, training.shape[0])]]).T
     Xtst = np.atleast_2d([grab_nz(testing, m, n) for m, n in zip(range(testing.shape[0]), range(window, testing.shape[0]))])
@@ -43,6 +54,15 @@ def GP_Prep(training, testing, window):
     return Xtr, Ytr, Xtst, Ycomp
 
 def read_5ghz_day(table_name):
+    '''
+    Input: A string that describes a table name.
+    Output: A touple of lists.
+    Description: Gets the contents of the table if it exists. For this function
+        specifically, there is an assumption that the table has a format of
+        such: it is a nx9 table with column names (Key, ts, nou, bits, pkt_num,
+        sigs, dr, phya, phyn) and is in the file 'databse.ini'. Please look at
+        documentation for DatabaseConnect() and _config() for more information.
+    '''
     db = dc.DatabaseConnect()
     db.connect()
     data = db.readTable(table_name)
@@ -63,6 +83,15 @@ def read_5ghz_day(table_name):
     return return_data
 
 def butterfilter(input_arr, title, sampling=60):
+    '''Input:
+        A list that can be represented as a time series that is the feature
+            desired to be filtered (input_arr)
+        A string that describes the filter (title)
+        A sampling frequency (sampling) [the default value is 60 to sample
+            the data into minutes chunks]
+        Output:
+        A list of filtered data points (1/sampling) of original size
+    '''
     z = (0.9/4) / sampling
     begin_cutoff = 500
     b, a = signal.butter(4, z, 'low')
@@ -78,10 +107,12 @@ def butterfilter(input_arr, title, sampling=60):
     plt.xlabel("Time of day (seconds)")
     plt.legend()
     plt.show()
-    print(len(xs))
     return xs
 
 def savgol(input_arr, title):
+    '''
+    DEPRECATED
+    '''
     sampling = 60
     xf = signal.savgol_filter(input_arr, 5, 2)
     xf_copy = np.array(xf).copy()
@@ -176,7 +207,8 @@ if __name__ == '__main__':
     plt.ylabel("Bits (predicted)")
     plt.show()
 
-
+    '''
+    #Training data is a time series
     print("Training the Gaussian Process...\n")
     print(butter_bits_tr.shape, butter_bits_tst.shape)
     real_xtr = [some_q+1 for some_q in range(len(butter_bits_tr))]
@@ -200,8 +232,9 @@ if __name__ == '__main__':
     plt.xlabel("Time (Minutes)")
     plt.ylabel("Bits (predicted)")
     plt.show()
-
     '''
+
+
     #Savgol filtering
     savgol_bits_tr = savgol(mon[2], labels_5ghz[1])
     savgol_bits_tst = savgol(sun[2], labels_5ghz[1])
@@ -226,4 +259,3 @@ if __name__ == '__main__':
     plt.xlabel("Time (Minutes)")
     plt.ylabel("Bits (predicted)")
     plt.show()
-    '''

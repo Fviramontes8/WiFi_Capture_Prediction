@@ -1,18 +1,12 @@
 var searchData=
 [
-  ['table_5fcontents',['table_contents',['../namespacedevice__emitter.html#a41adb72e6db041039a6416f891820c45',1,'device_emitter.table_contents()'],['../namespacedevice__reader.html#a5ee29ddcc8e6bbf93f8557da0f4a9853',1,'device_reader.table_contents()']]],
-  ['table_5fname',['table_name',['../namespacedevice__emitter.html#ae71d803969e8f98677e12dc98159d6de',1,'device_emitter.table_name()'],['../namespacedevice__reader.html#aad8c1a079cd59349e6fe8da74a150b4c',1,'device_reader.table_name()']]],
-  ['tableexists',['tableExists',['../classDatabaseConnector_1_1DatabaseConnect.html#a2e58b915bdd35d819f25c110d258adc7',1,'DatabaseConnector::DatabaseConnect']]],
-  ['test',['test',['../namespacetime__series2.html#a1db23c9847b01280de0f7b35c02ec33d',1,'time_series2']]],
-  ['test_5fdata',['test_data',['../namespacetime__series2.html#ac919557d9139430fa99c37bb9847b34a',1,'time_series2']]],
-  ['test_5ftable',['test_table',['../namespacetime__series2.html#aae4b3d023bcc07d4610b83f328c9c817',1,'time_series2']]],
-  ['threshold',['threshold',['../namespacetime__series2.html#a4ad96ae33e961d2a7b9254dcf7705ab1',1,'time_series2']]],
-  ['time_5fseries2',['time_series2',['../namespacetime__series2.html',1,'']]],
-  ['time_5fseries2_2epy',['time_series2.py',['../time__series2_8py.html',1,'']]],
-  ['timestamps',['timestamps',['../namespacetime__series2.html#ac28cc09905078b265b7b43c5a572bc15',1,'time_series2']]],
-  ['total_5fsamp',['total_samp',['../namespacetime__series2.html#af8e48fc6d3d4ad2c551a1b3df864aa51',1,'time_series2']]],
-  ['train',['train',['../namespacetime__series2.html#a217725c41e0be8eff877ccf0738ca225',1,'time_series2']]],
-  ['train_5ftable',['train_table',['../namespacetime__series2.html#a34db5677db4e9381ee013b03a4e01231',1,'time_series2']]],
-  ['training_5fdata',['training_data',['../namespacetime__series2.html#a19f3e3f5bd2694a9a461163b260e68a4',1,'time_series2']]],
-  ['txt_5freader',['txt_reader',['../namespacedevice__emitter.html#a37babfaa6ea3bbb358c94516521f9442',1,'device_emitter']]]
+  ['sample_5fvar',['sample_var',['../namespaceGaussian__Process__Predictor.html#a2dc622e780c37bb5756a375cfbb42d39',1,'Gaussian_Process_Predictor.sample_var()'],['../namespaceGP__Predictor__5GHz__old.html#afd3975a93e5a0997b3245efbc91481f1',1,'GP_Predictor_5GHz_old.sample_var()']]],
+  ['savgol',['savgol',['../namespaceECE541__project__viramontes.html#a5da4be4729bd8e09585b62bb92a21163',1,'ECE541_project_viramontes.savgol()'],['../namespaceGP__Predictor__5GHz.html#ae661cd05bfc7097cb800e3a2d8f89f5f',1,'GP_Predictor_5GHz.savgol()']]],
+  ['savgol_5fbits_5ftr',['savgol_bits_tr',['../namespaceGP__Predictor__5GHz.html#abb97234cdcb98a51a166721126441742',1,'GP_Predictor_5GHz']]],
+  ['savgol_5fbits_5ftst',['savgol_bits_tst',['../namespaceGP__Predictor__5GHz.html#aee55525b5f40dc7d7fe20f2fc54a4cde',1,'GP_Predictor_5GHz']]],
+  ['sigs',['sigS',['../namespaceGaussian__Process__Predictor.html#aea49b2497f3ea66914a626323b687f5c',1,'Gaussian_Process_Predictor']]],
+  ['sigs_5ftst',['sigS_tst',['../namespaceGaussian__Process__Predictor.html#a8ba8d9b5718363a33d202ea917ee6130',1,'Gaussian_Process_Predictor']]],
+  ['sub_5fsample',['sub_sample',['../namespaceGaussian__Process__Predictor.html#a2db6e702eb9c0dce249fb9d9b28715d2',1,'Gaussian_Process_Predictor.sub_sample()'],['../namespaceGP__Predictor__5GHz__old.html#a20bdd6671ec00d29785f30f2849cc896',1,'GP_Predictor_5GHz_old.sub_sample()']]],
+  ['sun',['sun',['../namespaceECE541__project__viramontes.html#a2edd9ed155f2d9df05b1a2a6291ae180',1,'ECE541_project_viramontes.sun()'],['../namespaceGP__Predictor__5GHz.html#aee3d3d083b2e9ed169d244a286974506',1,'GP_Predictor_5GHz.sun()']]],
+  ['sun2',['sun2',['../namespaceGP__Predictor__5GHz__old.html#a03dcad42499d9ef2f79f0c36ac5501a6',1,'GP_Predictor_5GHz_old']]]
 ];

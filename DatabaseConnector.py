@@ -72,7 +72,17 @@ class DatabaseConnect(object):
             self.conn.commit()
 
     def _config(self, filename='database.ini', section='postgresql'):
-        '''Reads database.ini file from current directory to get initialization values to connect to database'''
+        '''Reads 'database.ini' file from current directory to get initialization values to connect to database.
+        An example of an valid 'database.ini' file is:
+               ; Specifies what kind of database this file is going to work with
+               [postgresql]
+
+                ;Specifies the user credentials and IP address to connect to
+                host= 127.0.0.1
+                database= table_data
+                user= example_username
+                password= dont_panic
+            '''
         # create a parser
         parser = ConfigParser()
         # read config file

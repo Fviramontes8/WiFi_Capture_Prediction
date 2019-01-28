@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['y_5fpred',['y_pred',['../namespacetime__series2.html#adc3835a1aee5e6024fcf327d2fac0f08',1,'time_series2']]],
-  ['y_5fsigma',['y_sigma',['../namespacetime__series2.html#a41dcf5a15bbf43705317edb2c4917073',1,'time_series2']]],
-  ['ycomp',['Ycomp',['../namespacetime__series2.html#af29c132f3c4ad21f3ce71ca94bd5e811',1,'time_series2']]],
-  ['ylab',['ylab',['../namespacetime__series2.html#aede1d0cfe7385a32db06215b98af807c',1,'time_series2']]],
-  ['ytr',['Ytr',['../namespacetime__series2.html#a048fc1f5052ecd0ac42a809d13599ff0',1,'time_series2']]],
-  ['ytst',['Ytst',['../namespacetime__series2.html#ad545baebbafca44d770c7184debd3ebb',1,'time_series2']]]
+  ['writedata2ghz',['writeData2GHz',['../classDatabaseConnect.html#aa2fe852f7eaaa78f4172bde21fe65c4b',1,'DatabaseConnect']]],
+  ['writedata5ghz',['writeData5GHz',['../classDatabaseConnect.html#a4572abf2e9cc464dbdccd403c1ae4b08',1,'DatabaseConnect']]],
+  ['writedata_5f2ghz',['writeData_2ghz',['../classDatabaseConnector_1_1DatabaseConnect.html#a673147e525a51876bbfbb450c5ed5c6b',1,'DatabaseConnector::DatabaseConnect']]],
+  ['writedata_5f5ghz',['writeData_5ghz',['../classDatabaseConnector_1_1DatabaseConnect.html#a350c2fab7093d56de4c4faa4f5f03412',1,'DatabaseConnector::DatabaseConnect']]],
+  ['writedevicedata',['writeDeviceData',['../classDatabaseConnector_1_1DatabaseConnect.html#af67bc1a7983d83e2df140bc3cec92d84',1,'DatabaseConnector::DatabaseConnect']]]
 ];

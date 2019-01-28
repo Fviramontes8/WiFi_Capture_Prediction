@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['main',['main',['../parser5_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97',1,'parser5.cpp']]],
-  ['maketable',['makeTable',['../classDatabaseConnect.html#a255912a26d94bddf7b2400df4bc3fa18',1,'DatabaseConnect']]],
-  ['mean',['mean',['../namespacetime__series2.html#a91a50d414e62104b3c4df302683fa374',1,'time_series2']]]
+  ['feature_5fplot',['feature_plot',['../namespaceGaussian__Process__Predictor.html#ac262d39eef83c658b6a18e61bd8bed5e',1,'Gaussian_Process_Predictor.feature_plot()'],['../namespaceGP__Predictor__5GHz__old.html#a77cb3c954fa5e9ea01c4f40d9dcec304',1,'GP_Predictor_5GHz_old.feature_plot()']]]
 ];

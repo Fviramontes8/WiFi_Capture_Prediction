@@ -11,21 +11,29 @@ Inheritance diagram for Database\+Connector.\+Database\+Connect\+:\begin{figure}
 \item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_adafc2b78cab3df24b9f1f88990f88ac7}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
 \item 
+def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_af1f925cf8ade6d18f6046dc50a9acca4}{drop\+\_\+table}} (self, table\+\_\+name)
+\item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a2e58b915bdd35d819f25c110d258adc7}{table\+Exists}} (self, cursor, table\+\_\+name)
 \item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a2fea409b9f5b72e8c36f0dd0a8515253}{get\+Next\+Key}} (self, table\+\_\+name)
 \begin{DoxyCompactList}\small\item\em Public Functions. \end{DoxyCompactList}\item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a18f9d359811b7bdab423f052fe65e05b}{read\+Table}} (self, table\+\_\+name)
 \item 
-def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a6e37300433dbbbe0406adb7d969ef2e5}{write\+Data}} (self, table\+\_\+name, new\+\_\+table\+\_\+data)
+def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a673147e525a51876bbfbb450c5ed5c6b}{write\+Data\+\_\+2ghz}} (self, table\+\_\+name, new\+\_\+table\+\_\+data)
+\item 
+def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a350c2fab7093d56de4c4faa4f5f03412}{write\+Data\+\_\+5ghz}} (self, table\+\_\+name, new\+\_\+table\+\_\+data)
 \item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_af67bc1a7983d83e2df140bc3cec92d84}{write\+Device\+Data}} (self, table\+\_\+name, table\+\_\+data)
+\item 
+def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_ace97a586dd4e041b3815fd61c7b889b6}{test\+\_\+connect}} (self, database\+\_\+name, username, host\+\_\+name, password\+\_\+name)
 \item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a9d31fcb5c4b23c692a0488ab8633ba78}{connect}} (self)
 \item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_aeb9d5d3e55d60d137d938c8ba6f696b7}{disconnect}} (self)
 \item 
-def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_afd3c4da0bc49a45cf43f243bca6fe7f6}{create\+Data\+Table}} (self, table\+\_\+name)
+def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_ac121de72ce309000ddc108a1a6c1cc09}{create\+Data\+Table\+\_\+2ghz}} (self, table\+\_\+name)
+\item 
+def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a196df8f48a469a71b10192b98529ca3f}{create\+Data\+Table\+\_\+5ghz}} (self, table\+\_\+name)
 \item 
 def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a2ea501b906d72bac48ea7bc92ae87044}{get\+Table\+Names}} (self)
 \end{DoxyCompactItemize}
@@ -35,7 +43,9 @@ def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a2ea501b906d72bac
 \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a032674c05648a8ba31c2ef9a1363338e}{conn}}
 \begin{DoxyCompactList}\small\item\em Variable that determines if connection has been established with database. \end{DoxyCompactList}\item 
 \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_aa3b98ea56e1017172f5cee5e2369e667}{data\+\_\+2ghz\+\_\+query}}
-\begin{DoxyCompactList}\small\item\em Variable that is used for tables that contain wifi data on the 2ghz spectrum, query\+: (Key, ts, nou, bits, pkt\+\_\+num, sigs, dr, phyb, phyg, phyn) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Variable that is used for tables that contain wifi data on the 2ghz spectrum, query\+: (Key, ts, nou, bits, pkt\+\_\+num, sigs, dr, phyb, phyg, phyn) \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a7dc062c3656c29ff946228c951c39254}{data\+\_\+5ghz\+\_\+query}}
+\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -60,13 +70,22 @@ def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a2ea501b906d72bac
 {\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+connect (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
 
 \begin{DoxyVerb}Tries to establish a connection with the database\end{DoxyVerb}
- \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_afd3c4da0bc49a45cf43f243bca6fe7f6}\label{classDatabaseConnector_1_1DatabaseConnect_afd3c4da0bc49a45cf43f243bca6fe7f6}} 
-\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!create\+Data\+Table@{create\+Data\+Table}}
-\index{create\+Data\+Table@{create\+Data\+Table}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
-\subsubsection{\texorpdfstring{create\+Data\+Table()}{createDataTable()}}
-{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+create\+Data\+Table (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{table\+\_\+name }\end{DoxyParamCaption})}
+ \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_ac121de72ce309000ddc108a1a6c1cc09}\label{classDatabaseConnector_1_1DatabaseConnect_ac121de72ce309000ddc108a1a6c1cc09}} 
+\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!create\+Data\+Table\+\_\+2ghz@{create\+Data\+Table\+\_\+2ghz}}
+\index{create\+Data\+Table\+\_\+2ghz@{create\+Data\+Table\+\_\+2ghz}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
+\subsubsection{\texorpdfstring{create\+Data\+Table\+\_\+2ghz()}{createDataTable\_2ghz()}}
+{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+create\+Data\+Table\+\_\+2ghz (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{table\+\_\+name }\end{DoxyParamCaption})}
 
-\begin{DoxyVerb}Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values\end{DoxyVerb}
+\begin{DoxyVerb}Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values.
+This is a template for statistics that we available in the 2.4GHz spectrum of Wi-Fi\end{DoxyVerb}
+ \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_a196df8f48a469a71b10192b98529ca3f}\label{classDatabaseConnector_1_1DatabaseConnect_a196df8f48a469a71b10192b98529ca3f}} 
+\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!create\+Data\+Table\+\_\+5ghz@{create\+Data\+Table\+\_\+5ghz}}
+\index{create\+Data\+Table\+\_\+5ghz@{create\+Data\+Table\+\_\+5ghz}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
+\subsubsection{\texorpdfstring{create\+Data\+Table\+\_\+5ghz()}{createDataTable\_5ghz()}}
+{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+create\+Data\+Table\+\_\+5ghz (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{table\+\_\+name }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Creates table specified by table_name with columns: (Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn). They are all integer values.
+This is a template for statistics that we available in the 5GHz spectrum of Wi-Fi\end{DoxyVerb}
  \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_aeb9d5d3e55d60d137d938c8ba6f696b7}\label{classDatabaseConnector_1_1DatabaseConnect_aeb9d5d3e55d60d137d938c8ba6f696b7}} 
 \index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!disconnect@{disconnect}}
 \index{disconnect@{disconnect}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
@@ -74,6 +93,13 @@ def \mbox{\hyperlink{classDatabaseConnector_1_1DatabaseConnect_a2ea501b906d72bac
 {\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+disconnect (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
 
 \begin{DoxyVerb}Disconnects from the database\end{DoxyVerb}
+ \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_af1f925cf8ade6d18f6046dc50a9acca4}\label{classDatabaseConnector_1_1DatabaseConnect_af1f925cf8ade6d18f6046dc50a9acca4}} 
+\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!drop\+\_\+table@{drop\+\_\+table}}
+\index{drop\+\_\+table@{drop\+\_\+table}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
+\subsubsection{\texorpdfstring{drop\+\_\+table()}{drop\_table()}}
+{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+drop\+\_\+table (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{table\+\_\+name }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Deletes table_name from database\end{DoxyVerb}
  \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_a2fea409b9f5b72e8c36f0dd0a8515253}\label{classDatabaseConnector_1_1DatabaseConnect_a2fea409b9f5b72e8c36f0dd0a8515253}} 
 \index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!get\+Next\+Key@{get\+Next\+Key}}
 \index{get\+Next\+Key@{get\+Next\+Key}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
@@ -106,13 +132,26 @@ Public Functions.
 {\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+table\+Exists (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{cursor,  }\item[{}]{table\+\_\+name }\end{DoxyParamCaption})}
 
 \begin{DoxyVerb}Checks if table exists in database\end{DoxyVerb}
- \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_a6e37300433dbbbe0406adb7d969ef2e5}\label{classDatabaseConnector_1_1DatabaseConnect_a6e37300433dbbbe0406adb7d969ef2e5}} 
-\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!write\+Data@{write\+Data}}
-\index{write\+Data@{write\+Data}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
-\subsubsection{\texorpdfstring{write\+Data()}{writeData()}}
-{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+write\+Data (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{table\+\_\+name,  }\item[{}]{new\+\_\+table\+\_\+data }\end{DoxyParamCaption})}
+ \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_ace97a586dd4e041b3815fd61c7b889b6}\label{classDatabaseConnector_1_1DatabaseConnect_ace97a586dd4e041b3815fd61c7b889b6}} 
+\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!test\+\_\+connect@{test\+\_\+connect}}
+\index{test\+\_\+connect@{test\+\_\+connect}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
+\subsubsection{\texorpdfstring{test\+\_\+connect()}{test\_connect()}}
+{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+test\+\_\+connect (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{database\+\_\+name,  }\item[{}]{username,  }\item[{}]{host\+\_\+name,  }\item[{}]{password\+\_\+name }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_a673147e525a51876bbfbb450c5ed5c6b}\label{classDatabaseConnector_1_1DatabaseConnect_a673147e525a51876bbfbb450c5ed5c6b}} 
+\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!write\+Data\+\_\+2ghz@{write\+Data\+\_\+2ghz}}
+\index{write\+Data\+\_\+2ghz@{write\+Data\+\_\+2ghz}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
+\subsubsection{\texorpdfstring{write\+Data\+\_\+2ghz()}{writeData\_2ghz()}}
+{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+write\+Data\+\_\+2ghz (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{table\+\_\+name,  }\item[{}]{new\+\_\+table\+\_\+data }\end{DoxyParamCaption})}
 
 \begin{DoxyVerb}Writes data to table of PostgreSQL database, input must be in this from: Key, ts, nou, bits, pkt_num, sigs, dr, phyb, phyg, phyn. Where all values are integers\end{DoxyVerb}
+ \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_a350c2fab7093d56de4c4faa4f5f03412}\label{classDatabaseConnector_1_1DatabaseConnect_a350c2fab7093d56de4c4faa4f5f03412}} 
+\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!write\+Data\+\_\+5ghz@{write\+Data\+\_\+5ghz}}
+\index{write\+Data\+\_\+5ghz@{write\+Data\+\_\+5ghz}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
+\subsubsection{\texorpdfstring{write\+Data\+\_\+5ghz()}{writeData\_5ghz()}}
+{\footnotesize\ttfamily def Database\+Connector.\+Database\+Connect.\+write\+Data\+\_\+5ghz (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{table\+\_\+name,  }\item[{}]{new\+\_\+table\+\_\+data }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Writes data to table of PostgreSQL database, input must be in this from: Key, ts, nou, bits, pkt_num, sigs, dr, phya, phyn. Where all values are integers\end{DoxyVerb}
  \mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_af67bc1a7983d83e2df140bc3cec92d84}\label{classDatabaseConnector_1_1DatabaseConnect_af67bc1a7983d83e2df140bc3cec92d84}} 
 \index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!write\+Device\+Data@{write\+Device\+Data}}
 \index{write\+Device\+Data@{write\+Device\+Data}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
@@ -142,6 +181,12 @@ Variable that determines if connection has been established with database.
 
 
 Variable that is used for tables that contain wifi data on the 2ghz spectrum, query\+: (Key, ts, nou, bits, pkt\+\_\+num, sigs, dr, phyb, phyg, phyn) 
+
+\mbox{\Hypertarget{classDatabaseConnector_1_1DatabaseConnect_a7dc062c3656c29ff946228c951c39254}\label{classDatabaseConnector_1_1DatabaseConnect_a7dc062c3656c29ff946228c951c39254}} 
+\index{Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}!data\+\_\+5ghz\+\_\+query@{data\+\_\+5ghz\+\_\+query}}
+\index{data\+\_\+5ghz\+\_\+query@{data\+\_\+5ghz\+\_\+query}!Database\+Connector\+::\+Database\+Connect@{Database\+Connector\+::\+Database\+Connect}}
+\subsubsection{\texorpdfstring{data\+\_\+5ghz\+\_\+query}{data\_5ghz\_query}}
+{\footnotesize\ttfamily Database\+Connector.\+Database\+Connect.\+data\+\_\+5ghz\+\_\+query}
 
 
 
