@@ -142,6 +142,8 @@ class DatabaseConnect(object):
 
             sql_query = sql.SQL("INSERT INTO {} " + query).format(sql.Identifier(table_name))
 
+            print(sql_query)
+
             # need to discriminate single and multiple data
             cur.execute(sql_query, new_data)
             #cur.executemany(sql_query, new_data)
@@ -164,6 +166,8 @@ class DatabaseConnect(object):
             cur.execute(query, table_data)
             self.conn.commit()
     #'''
+    def delete5Data(self, key, table_name):
+        self._deleteData(key, table_name)
 
     def _deleteData(self, key, table_name):
         '''Deletes data specified by key and table_name'''
