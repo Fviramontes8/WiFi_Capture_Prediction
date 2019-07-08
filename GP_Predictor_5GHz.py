@@ -55,12 +55,26 @@ def GP_Prep(training, testing, window):
     return Xtr, Ytr, Xtst, Ycomp
 
 def print_gp(pred, sigma, compare, feature, day, window):
+    sigma = 0.98#1.96
     prediction_time= [p+1 for p in range(len(pred))]
     plt.plot(prediction_time, pred, "c-", label="GP Prediction")
     plt.plot(prediction_time, compare, "y.", label="Validation data")
     plt.fill(np.concatenate([prediction_time, prediction_time[::-1]]),
-                     np.concatenate([y_pred-1.96*y_sigma,
-                                    (y_pred+1.96*y_sigma)[::-1]]),
+                     np.concatenate([y_pred-sigma*y_sigma,
+                                    (y_pred+sigma*y_sigma)[::-1]]),
+                     alpha=.5, fc='b', ec='none')
+    plt.legend()
+    plt.title("Gaussian Process Prediction with 6th order Butterworth filter,\nPredicting "+day+"day\nWith window of "+str(window))
+    plt.xlabel("Time (Hours)")
+    plt.ylabel(feature+" (predicted)")
+    plt.show()
+
+    sigma *= 2
+    plt.plot(prediction_time, pred, "c-", label="GP Prediction")
+    plt.plot(prediction_time, compare, "y.", label="Validation data")
+    plt.fill(np.concatenate([prediction_time, prediction_time[::-1]]),
+                     np.concatenate([y_pred-sigma*y_sigma,
+                                    (y_pred+sigma*y_sigma)[::-1]]),
                      alpha=.5, fc='b', ec='none')
     plt.legend()
     plt.title("Gaussian Process Prediction with 6th order Butterworth filter,\nPredicting "+day+"day\nWith window of "+str(window))
@@ -160,6 +174,35 @@ def mape_test(actual, estimated):
     result /= size
     return result
 
+def kernel_select(kernel_str):
+    if type(kernel_str) is not str:
+        print("Input is not a string!\n")
+        return None
+    if kernel_str == "linear":
+        kernel1 = LK(sigma_0 = 1, sigma_0_bounds = (1e-1, 1e1))
+        kernel2 = CK(constant_value=1)
+        kernel3 = WK(0.1)
+        kernel = Sum(kernel1, kernel2)
+        kernel = Sum(kernel, kernel3)
+    elif kernel_str == "RBF":
+        kernel1 = RBF(length_scale=5, length_scale_bounds=(1e-1, 1e1))
+        kernel2 = CK(constant_value=1)
+        kernel3 = WK(0.1)
+        kernel = Sum(kernel1, kernel2)
+        kernel = Sum(kernel, kernel3)
+    else:
+        print("Not a valid kernel name, defaulting to ", end="")
+        kernel1 = LK(sigma_0 = 1, sigma_0_bounds = (1e-1, 1e1))
+        kernel2 = CK(constant_value=1)
+        kernel3 = WK(0.1)
+        kernel = Sum(kernel1, kernel2)
+        kernel = Sum(kernel, kernel3)
+        print(kernel)
+
+    #print(kernel)
+    return kernel
+
+
 if __name__ == '__main__':
     #Reading data from database
     #Good days:
@@ -202,14 +245,17 @@ if __name__ == '__main__':
     butter_bits_tr = butter_bits_tr1
 
     for zed in range(2, 8):
-        temp_mon = read_5ghz_day("5pi_"+day+str(zed))
+        try:
+            temp_mon = read_5ghz_day("5pi_"+day+str(zed))
 
-        while(temp_mon[2][0] < 1):
-            del temp_mon[2][0]
+            while(temp_mon[2][0] < 1):
+                del temp_mon[2][0]
 
-        temp_bits_tr = butterfilter(temp_mon[2], labels_5ghz[1])
-        butter_bits_tr = list(butter_bits_tr) + list(temp_bits_tr)
-        butter_bits_tr = np.array(butter_bits_tr)
+            temp_bits_tr = butterfilter(temp_mon[2], labels_5ghz[1], 60)
+            butter_bits_tr = list(butter_bits_tr) + list(temp_bits_tr)
+            butter_bits_tr = np.array(butter_bits_tr)
+        except:
+            print("Could not read 5pi_"+day+str(zed))
 
     '''
     butter_bits_tr2 = butterfilter(mon2[2], labels_5ghz[1])
@@ -227,7 +273,7 @@ if __name__ == '__main__':
     plt.title("7 days of Monday bits sent")
     plt.show()
 
-    butter_bits_tr = butterfilter(butter_bits_tr, labels_5ghz[1], 60)
+    butter_bits_tr = butterfilter(butter_bits_tr, labels_5ghz[1], 6)
     plt.plot(butter_bits_tr, "m")
     plt.ylabel("Bits sent")
     plt.xlabel("Time in hours")
@@ -277,34 +323,27 @@ if __name__ == '__main__':
     '''
 #    '''
     #Declaration of the Gaussian Process Regressor with its kernel parameters
-    #kernel1 = RBF(length_scale=1, length_scale_bounds=(1e-1, 1e1))
-    kernel1 = LK(sigma_0 = 1, sigma_0_bounds = (1e-1, 1e1))
-    kernel2 = CK(constant_value=1)
-    kernel3 = WK(1)
-    kernel = Sum(kernel1, kernel2)
-    kernel = Sum(kernel, kernel3)
+    kernel = kernel_select("linear")
     gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
-                                  normalize_y=False, alpha=1e-3)
-    window = 3
-    wind = [3, 5, 10]
+                                  normalize_y=False)#, alpha=1e-3)
+    window = 10
     #Transforming the input data so that it can be used in the Gaussian Process
-    for w in wind:
-        Xtr, Ytr, Xtst, Ycomp = GP_Prep(butter_bits_tr, butter_bits_tst, w)
+    Xtr, Ytr, Xtst, Ycomp = GP_Prep(butter_bits_tr, butter_bits_tst, window)
 
-        print(Xtr.shape)
-        print(Xtst.shape)
+    print(Xtr.shape)
+    print(Xtst.shape)
 
-        print("Training the Gaussian Process...\n")
-        gp.fit(Xtr, Ytr)
-        print("\tMarginal likelihood:", gp.log_marginal_likelihood())
+    print("Training the Gaussian Process...")
+    gp.fit(Xtr, Ytr)
+    print("\tMarginal likelihood:", gp.log_marginal_likelihood())
 
 
-        #Plotting prediction against mon8
-        y_pred, y_sigma = gp.predict(Xtst, return_std=True)
-        print("Chi-squared test against training data: ", gp.score(Xtr,Ytr))
-        print("Chi-squared test against real data: ", gp.score(Xtst,Ycomp))
-        print("MAPE between acutal and estimated:", mape_test(Ycomp, y_pred) * 100)
-        print_gp(y_pred, y_sigma, Ycomp, "Bits", day, str(w)+"\nMAPE: "+str(mape_test(Ycomp, y_pred) * 100))
+    #Plotting prediction against mon8
+    y_pred, y_sigma = gp.predict(Xtst, return_std=True)
+    print("Chi-squared test against training data: ", gp.score(Xtr,Ytr))
+    print("Chi-squared test against real data: ", gp.score(Xtst,Ycomp))
+    print("MAPE between acutal and estimated:", mape_test(Ycomp, y_pred) * 100)
+    print_gp(y_pred, y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_test(Ycomp, y_pred) * 100))
 
     '''
     #Plotting prediction against mon1
@@ -364,7 +403,6 @@ if __name__ == '__main__':
     plt.ylabel("Bits (predicted)")
     plt.show()
     '''
-
 
     '''
     #Savgol filtering

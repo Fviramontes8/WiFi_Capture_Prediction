@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Authors: Seth Decker, Francisco Viramontes
+@author: Seth Decker, Francisco Viramontes
 
 Description: This code interfaces to a PostgreSQL database. It can build tables,
 read tables, and write to tables.
