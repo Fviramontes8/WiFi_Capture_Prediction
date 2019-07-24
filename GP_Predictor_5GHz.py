@@ -130,6 +130,9 @@ def butterfilter(input_arr, title, sampling=60):
     xf = signal.lfilter(b, a, input_arr)
     plt.plot(input_arr[begin_cutoff:], label="Original Data")
     plt.plot(xf[begin_cutoff:], label="Filtered Data")
+    return xf
+
+def custom_sample(xf, title, sampling=60):
     xf_copy = np.array(xf).copy()
     xs = xf_copy[1::sampling]
     x_axis_xs = np.array([i for i in range(len(xf))])
