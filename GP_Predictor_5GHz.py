@@ -63,8 +63,8 @@ def GP_Prep(training, testing, window, validating=0):
 	return Xtr, Ytr, Xtst, Ycomp, x_valid, y_valid
 
 def print_gp(pred, sigma, compare, feature, day, window):
-	print("Arguement size: ", pred.shape, sigma.shape, compare.shape)
-	print("Feature: ", feature, "\nDay: ", day, "\nTitle ", window)
+	#print("Arguement size: ", pred.shape, sigma.shape, compare.shape)
+	#print("Feature: ", feature, "\nDay: ", day, "\nTitle ", window)
 	sigma_coef = 0.98#1.96
 	prediction_time= [p+1 for p in range(len(pred))]
 	plt.plot(prediction_time, pred, "c-", label="GP Prediction")
@@ -149,7 +149,7 @@ def butterfilter(input_arr, title, day, freq=60):
 		plt.show()
 	return xf
 
-def my_sample(xf, title, day, sampling=60):
+def sub_sample(xf, title, day, sampling=60):
 	'''
 	Input:
 		A string that describes the filter (title)
@@ -230,77 +230,49 @@ def kernel_select(kernel_str):
 	#print(kernel)
 	return kernel
 
-
-if __name__ == '__main__':
-	#Reading data from database
-	day = "fri"
-	first_day = read_5ghz_day("5pi_"+day)
-	#1-D string array of features for the Gaussian Process to learn
+def week_data_prep(day, start_week, end_week, sample_rate, sample_rate2=None):
+	training_data = []
 	labels_5ghz = ["Number of users",
        				"Bits"
        				]
-	'''
-	#Plotting the original data
-	plt.plot(mon[2], "r")
-	plt.ylabel("Bits (Training)")
-	plt.xlabel("Time of day (seconds)")
-	plt.title("Bits sent through the network")
-	plt.show()
 
-	plt.plot(sun[2], "r")
-	plt.ylabel("Bits (Testing)")
-	plt.xlabel("Time of day (seconds)")
-	plt.title("Bits sent through the network")
-	plt.show()
-	'''
+	for week in range(start_week, end_week+1):
+		table_name = "5pi_"+str(day)+str(week)
+		day_data = read_5ghz_day(table_name)
 
-	#Putting the data through a butterworth filter then subsampling for one day
-	sampling_rate_tr = 60
-	sampling_rate_testing = 6
-	butter_bits_tr1 = butterfilter(first_day[2], labels_5ghz[1], "5pi_"+day)
-	butter_bits_tr1 = my_sample(butter_bits_tr1, labels_5ghz[1], "5pi_"+day, sampling_rate_tr)
-	#butter_bits_tr1 = butterfilter(butter_bits_tr1, labels_5ghz[1], "5pi_"+day, 6)
-	sampled_bits_tr1 = my_sample(butter_bits_tr1, labels_5ghz[1], "5pi_"+day, sampling_rate_testing)
-	bits_tr = sampled_bits_tr1
+		while(day_data[2][0] < 1):
+				del day_data[2][0]
 
-	#Adding the rest of the available days to the training dataset
-	for zed in range(2, 8):
-		if( (day == "fri") & (zed==5)):
-			#Duplicate dataset :(
-			pass
-		try:
-			temp_mon = read_5ghz_day("5pi_"+day+str(zed))
+		filtered_training = butterfilter(day_data[2], labels_5ghz[1], table_name)
+		sampled_training = sub_sample(filtered_training, labels_5ghz[1], table_name, sample_rate)
+		if(sample_rate2):
+			sampled_training = sub_sample(sampled_training, labels_5ghz[1], table_name, sample_rate2)
+		training_data.extend(sampled_training)
 
-			while(temp_mon[2][0] < 1):
-				del temp_mon[2][0]
+	training_data = np.array(training_data)
+	return training_data
 
-			filtered_bits_tr = butterfilter(temp_mon[2], labels_5ghz[1], "5pi_"+day+str(zed))
-			filtered_bits_tr = my_sample(filtered_bits_tr, labels_5ghz[1], "5pi_"+day+str(zed), sampling_rate_tr)
-			#filtered_bits_tr = butterfilter(filtered_bits_tr, labels_5ghz[1], "5pi_"+day+str(zed), 6)
-			#print("Filtered len:", len(filtered_bits_tr))
-			sampled_bits_tr = my_sample(filtered_bits_tr, labels_5ghz[1], "5pi_"+day+str(zed), sampling_rate_testing)
-			#print("Sampled len:", len(sampled_bits_tr))
-			bits_tr = list(bits_tr) + list(sampled_bits_tr)
-			bits_tr = np.array(bits_tr)
-		except Exception as ex:
-			print("Could not read 5pi_"+day+str(zed))
-			print("Exception error:", ex)
+if __name__ == '__main__':
+	#Reading data from database
+	#mon, tues, wed, thurs, fri are full from 2 to 15
+	day = "tues"
+	labels_5ghz = ["Number of users",
+       				"Bits"
+       				]
+	begin_week = 2
+	end_week = 14
+	init_sample_rate = 60
+	second_sample_rate = 6
+	test_week=15
 
+	bits_tr = week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
 	plt.plot(bits_tr)
-	plt.xlabel("Time (10-minute chunks of 7 Fridays)")
+	plt.xlabel("Time (10-minute chunks of multiple days)")
 	plt.ylabel("Bits")
-	plt.title("Training data")
+	plt.title("Training data of " +str(end_week-begin_week+1)+" weeks")
 	plt.show()
 
-	training_title = "5pi_fri10"
-	another_day = read_5ghz_day(training_title)
-	print(len(another_day[2]))
-	while(another_day[2][0] < 1):
-		del another_day[2][0]
-	butter_bits_tst = butterfilter(another_day[2], labels_5ghz[1], training_title)
-	butter_tst = my_sample(butter_bits_tst, labels_5ghz[1], training_title, 10)
-	#butter_bits_tst = butterfilter(butter_bits_tst, labels_5ghz[1], "5pi_fri8", 6)
-	bits_tst = my_sample(butter_bits_tst, labels_5ghz[1], training_title, sampling_rate_tr)
+	bits_tst = week_data_prep(day, test_week, test_week, init_sample_rate)
 
 	plt.plot(bits_tst)
 	plt.xlabel("Time (minutes)")
@@ -309,27 +281,13 @@ if __name__ == '__main__':
 	plt.show()
 	print("Test shape", bits_tst.shape)
 
-	'''#Creates a validation set
-	#Split data into a training an validaiton set with a ratio of 80:20
-	butter_nou_tr = butter_nou[:int(len(butter_nou)*0.8):]
-	butter_nou_tst = butter_nou[int(len(butter_nou)*0.8)::]
-
-	xaxis1 = [i for i in range(len(butter_nou_tr))]
-	plt.plot(xaxis1, butter_nou_tr, "c", label="Training")
-	xaxis2 = [j for j in range(len(butter_nou_tr), len(butter_nou_tr)+len(butter_nou_tst))]
-	plt.plot(xaxis2, butter_nou_tst, "g", label="Validation")
-	plt.legend()
-	plt.xlabel("Time (Minutes)")
-	plt.ylabel("Number of Users")
-	plt.title(s="Butterworth filtered data for number of users")
-	plt.show()
-	'''
 	#Declaration of the Gaussian Process Regressor with its kernel parameters
 	kernel = kernel_select("linear")
 	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
                               	normalize_y=False)#, alpha=1e-3)
 	window = 10
 	validating = 0
+
 	#Transforming the input data so that it can be used in the Gaussian Process
 	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = GP_Prep(bits_tr, bits_tst, window, validating)
 
@@ -337,8 +295,6 @@ if __name__ == '__main__':
 	print("x_valid:", Xvalid.shape, "\ty_valid:", Yvalid.shape)
 	print("x_test:", Xtst.shape, "\ty_tst:", Ycomp.shape)
 
-	#print(Xtr.shape)
-	#print(Xtst.shape)
 
 	print("Training the Gaussian Process...\n")
 	gp.fit(Xtr, Ytr)
@@ -367,91 +323,3 @@ if __name__ == '__main__':
 	print_gp(y_pred[:500], y_sigma[:500], Ycomp[:500], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
 	print_gp(y_pred[500:1000], y_sigma[500:1000], Ycomp[500:1000], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-
-	print_gp(y_pred[1000:], y_sigma[1000:], Ycomp[1000:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-
-
-	'''
-	#Plotting prediction against mon1
-	Xtr, Ytr, Xtst, Ycomp = GP_Prep(butter_bits_tr, butter_bits_tr1, window)
-	y_pred, y_sigma = gp.predict(Xtst, return_std=True)
-	print_gp(y_pred, y_sigma, Ycomp, "Bits")
-	print(gp.score(Xtr,Ytr))
-	print(gp.score(Xtst,Ycomp))
-
-	#Plotting prediction against mon2
-	Xtr, Ytr, Xtst, Ycomp = GP_Prep(butter_bits_tr, butter_bits_tr2, window)
-	y_pred, y_sigma = gp.predict(Xtst, return_std=True)
-	print_gp(y_pred, y_sigma, Ycomp, "Bits")
-	print(gp.score(Xtr,Ytr))
-	print(gp.score(Xtst,Ycomp))
-
-
-	#Plotting prediction against tues2
-	Xtr, Ytr, Xtst, Ycomp = GP_Prep(butter_bits_tr, butter_bits_tr3, window)
-	y_pred, y_sigma = gp.predict(Xtst, return_std=True)
-	print_gp(y_pred, y_sigma, Ycomp, "Bits")
-	print(gp.score(Xtr,Ytr))
-	print(gp.score(Xtst,Ycomp))
-#    '''
-
-#Fix spaces here!!!!!!!!!!!!!!!!!1111
-	'''
-	#Training data is a time series
-	#kernel1 = RBF(length_scale=1, length_scale_bounds=(1e-1, 1e1))
-	kernel1 = LK(sigma_0 = 0.1, sigma_0_bounds = (1e-3, 1e3))
-	kernel2 = CK(constant_value=5)
-	#kernel3 = WK(1)
-	kernel = Sum(kernel1, kernel2)
-	#kernel = Sum(kernel, kernel3)
-	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
-                              	normalize_y=False, alpha=1e-1)
-	print("Training the Gaussian Process...\n")
-	print(butter_bits_tr.shape, butter_bits_tst.shape)
-	real_xtr = [some_q+1 for some_q in range(len(butter_bits_tr))]
-	real_xtr = np.atleast_2d(real_xtr).T
-
-	plt.plot(real_xtr, butter_bits_tr)
-	plt.plot(butter_bits_tst)
-	plt.show()
-
-	gp.fit(real_xtr, butter_bits_tr)
-	y_pred, y_sigma = gp.predict(np.atleast_2d(butter_bits_tst).T, return_std=True)
-	prediction_time= [p+1 for p in range(len(y_pred))]
-	plt.plot(prediction_time, y_pred, "c-", label="GP Prediction")
-	plt.plot(butter_bits_tst, "y.", label="Validation data")
-	plt.fill(np.concatenate([prediction_time, prediction_time[::-1]]),
-				np.concatenate([y_pred-1.96*y_sigma,
-				(y_pred+1.96*y_sigma)[::-1]]), alpha=.5, fc='b', ec='none')
-	plt.legend()
-	plt.title("Gaussian Process Prediction with 6th order Butterworth filter,\nTesting is a time series")
-	plt.xlabel("Time (Minutes)")
-	plt.ylabel("Bits (predicted)")
-	plt.show()
-	'''
-
-	'''
-	#Savgol filtering
-	savgol_bits_tr = savgol(mon[2], labels_5ghz[1])
-	savgol_bits_tst = savgol(sun[2], labels_5ghz[1])
-
-	Xtr, Ytr, Xtst, Ycomp = GP_Prep(savgol_bits_tr, savgol_bits_tst, 10)
-
-	print("Training the Gaussian Process...\n")
-	gp.fit(Xtr, Ytr)
-	print("\tMarginal likelihood:", gp.log_marginal_likelihood())
-	y_pred, y_sigma = gp.predict(Xtst, return_std=True)
-
-	#Plotting prediction
-	prediction_time= [p+1 for p in range(len(y_pred))]
-	plt.plot(prediction_time, y_pred, "c-", label="GP Prediction")
-	plt.plot(prediction_time, Ycomp, "y.", label="Validation data")
-	plt.fill(np.concatenate([prediction_time, prediction_time[::-1]]),
-				np.concatenate([y_pred-1.96*y_sigma,
-				(y_pred+1.96*y_sigma)[::-1]]), alpha=.5, fc='b', ec='none')
-	plt.legend()
-	plt.title("Gaussian Process Prediction with Savitzky-Golay filter")
-	plt.xlabel("Time (Minutes)")
-	plt.ylabel("Bits (predicted)")
-	plt.show()
-	'''
