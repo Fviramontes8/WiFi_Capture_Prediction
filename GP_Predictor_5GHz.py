@@ -160,7 +160,7 @@ def sub_sample(xf, title, day, sampling=60):
 	xf_copy = np.array(xf).copy()
 	xs = xf_copy[1::sampling]
 	x_axis_xs = np.array([i for i in range(1, len(xf), sampling)])
-	graphing = 1
+	graphing = 0
 	if graphing:
 		plt.title("Subsampled data at a rate of " +str(sampling)+" for "+day)
 		plt.ylabel(title)
@@ -205,24 +205,23 @@ def mape_test(actual, estimated):
 
 def kernel_select(kernel_str):
 	if type(kernel_str) is not str:
-		print("Input is not a string!\n")
-		return None
+		print("Input is not a string! Defaulting to a linear kernel\n")
 	if kernel_str == "linear":
-		kernel1 = LK(sigma_0 = 10, sigma_0_bounds=(10e-1, 10e1))
+		kernel1 = LK(sigma_0 = 10, sigma_0_bounds=(10e-1, 10e2))
 		kernel2 = CK(constant_value=1)
-		kernel3 = WK(noise_level=1e-2, noise_level_bounds = (10e-4, 10e-2))
+		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-1, 10e1))
 		kernel = Sum(kernel1, kernel2)
 		kernel = Sum(kernel, kernel3)
 	elif kernel_str == "RBF":
-		kernel1 = RBF(length_scale=5, length_scale_bounds=(1e-1, 1e1))
+		kernel1 = RBF(length_scale=10e2, length_scale_bounds=(1e1, 1e3))
 		kernel2 = CK(constant_value=1)
-		kernel3 = WK(0.1)
+		kernel3 = WK(noise_level=1e-2, noise_level_bounds = (10e-3, 10e-1))
 		kernel = Sum(kernel1, kernel2)
 		kernel = Sum(kernel, kernel3)
 	else:
-		kernel1 = LK(sigma_0 = 1, sigma_0_bounds=(10e-1, 10e1))
+		kernel1 = LK(sigma_0 = 10, sigma_0_bounds=(10e-1, 10e1))
 		kernel2 = CK(constant_value=1)
-		kernel3 = WK(noise_level=0.01, noise_level_bounds = (10e1, 10e3))
+		kernel3 = WK(noise_level=1e-4, noise_level_bounds = (10e-5, 10e-1))
 		kernel = Sum(kernel1, kernel2)
 		kernel = Sum(kernel, kernel3)
 		print("Not a valid kernel name, defaulting to ", kernel)
@@ -273,7 +272,7 @@ def day_data_prep(days_of_week, num_of_weeks, sample_rate, sample_rate2=None):
 	training_data = np.array(training_data)
 	return training_data
 
-def verify_sigma(pred_series, sigma_series):
+def verify_sigma(actual_series, pred_series, sigma_series):
 	upper_sigma = []
 	for i in range(len(pred_series)):
 		upper_sigma.append(pred_series[i] + sigma_series[i])
@@ -284,15 +283,15 @@ def verify_sigma(pred_series, sigma_series):
 
 	count = 0
 	for h in range(len(pred_series)):
-		if((pred_series[h] < upper_sigma[h]) & (pred_series[h] > lower_sigma[h])):
+		if((actual_series[h] <= upper_sigma[h]) & (actual_series[h] >= lower_sigma[h])):
 			count += 1
 
 	one_sigma=False
 	two_sigma=False
-	if( count > (len(pred_series) * 0.65)):
+	if( count > (len(actual_series) * 0.65)):
 		one_sigma = True
 
-	if( count > (len(pred_series) * 0.95)):
+	if( count > (len(actual_series) * 0.95)):
 		two_sigma = True
 
 	return one_sigma, two_sigma
@@ -316,16 +315,17 @@ if __name__ == '__main__':
 	init_sample_rate = 60
 	second_sample_rate = 6
 	test_week=15
+	total_weeks=7
 
 	#bits_tr = week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
-	bits_tr = day_data_prep(days_of_week, 6, init_sample_rate, second_sample_rate)
+	bits_tr = day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
 	plt.plot(bits_tr)
 	plt.xlabel("Time (10-minute chunks of multiple days)")
 	plt.ylabel("Bits")
-	plt.title("Training data of "+str(10)+" total weeks (mon-fri)")# +str(end_week-begin_week+1)+" weeks")
+	plt.title("Training data of "+str(total_weeks)+" total weeks (mon-fri)")# +str(end_week-begin_week+1)+" weeks")
 	plt.show()
 
-	bits_tst = week_data_prep(days_of_week[3], test_week, test_week, init_sample_rate)
+	bits_tst = week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate)
 
 	plt.plot(bits_tst)
 	plt.xlabel("Time (minutes)")
@@ -337,7 +337,7 @@ if __name__ == '__main__':
 	#Declaration of the Gaussian Process Regressor with its kernel parameters
 	kernel = kernel_select("linear")
 	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
-                              	normalize_y=False)#, alpha=1e-3)
+                              	normalize_y=False, alpha=1e-3)
 	window = 10
 	validating = 0
 
@@ -356,7 +356,8 @@ if __name__ == '__main__':
 	y_self_pred, y_self_sigma = gp.predict(Xtr, return_std=True)
 	print("self_pred: ", y_self_pred.shape, " ycomp: ", Ytr.shape, " self_sigma: ", y_self_sigma.shape)
 	#print_gp(y_self_pred, y_self_sigma, np.array(Ytr), "Bits", day, str(window)+"\nMAPE: "+str(mape_test(Ytr, y_self_pred) * 100))
-	print(gp.get_params(deep=True))
+	#print(gp.get_params(deep=True))
+
 	if(validating):
 		print("Comparing with the validation set")
 		y_valid_pred, y_valid_sigma = gp.predict(Xvalid, return_std=True)
@@ -373,12 +374,16 @@ if __name__ == '__main__':
 	print("MAPE between acutal and estimated:", mape_testing_score)
 	print_gp(y_pred, y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
-	#print_gp(y_pred[:400], y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	print_gp(y_pred[:400], y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
-	#print_gp(y_pred[400:800], y_sigma[400:800], Ycomp[400:800], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-	#print_gp(y_pred[800:], y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	print_gp(y_pred[400:800], y_sigma[400:800], Ycomp[400:800], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	print_gp(y_pred[800:], y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
-	one_sigma, two_sigma = verify_sigma(y_pred, y_sigma)
+	plt.plot(y_sigma)
+	plt.title("Standard deviation")
+	plt.show()
+
+	one_sigma, two_sigma = verify_sigma(Ycomp, y_pred, y_sigma)
 	if(one_sigma):
 		print("Prediction is within 65% of the variance")
 	else:
