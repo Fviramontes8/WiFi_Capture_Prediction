@@ -4,7 +4,15 @@
 Python 3.6
 Packages needed: scikit-learn, psycopg2, numpy, scipy
 @author: Francisco Viramontes
+From: https://github.com/fviramontes8/Wifi_Capture_Prediction
+Depends on files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
 """
+#Private signal processor/sampler
+import SignalProcessor as sp
+
+#Private database processor
+import DatabaseProcessor as dbp
+
 #Package to interface with AWS database
 import DatabaseConnector as dc
 
@@ -15,26 +23,14 @@ import numpy as np
 #For ploting data
 import matplotlib.pyplot as plt
 
-#For use of the butterworth and Savgol filters
-from scipy import signal
-
 #Machine Learning package for the Gaussian Process Regressor
 from sklearn.model_selection import train_test_split
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import DotProduct as LK, WhiteKernel as WK
 from sklearn.gaussian_process.kernels import ConstantKernel as CK, Sum
 from sklearn.gaussian_process.kernels import RationalQuadratic as RQ, RBF
-#import commpy.filters as comm
 
-def grab_nz(array, n ,z):
-	'''Gets the first n to z values of an array, returns error if n is greater
-		than the length of the array or if z < n or z > len(array)
-	'''
-	if (n <= len(array)) and (z <= len(array)):
-		return np.atleast_1d([array[i] for i in range(n, z)]).T
-	else:
-		print("Usage: \n\tgrab_nz(array, n, z)\n\t\tn must be less than the length of array and n < z < len(array)")
-		return -1
+
 
 def GP_Prep(training, testing, window, validating=0):
 	'''Inputs: train/test, which needs to be an array and each can be a different size, window,
@@ -52,12 +48,12 @@ def GP_Prep(training, testing, window, validating=0):
 	y_valid = np.ones((2, 2))
 	if(validating):
 		training, validation = train_test_split(training, test_size = 0.2)
-		x_valid = np.atleast_2d([grab_nz(validation, m, n) for m, n in zip(range(validation.shape[0]), range(window, validation.shape[0]))])
+		x_valid = np.atleast_2d([sp.grab_nz(validation, m, n) for m, n in zip(range(validation.shape[0]), range(window, validation.shape[0]))])
 		y_valid = np.atleast_2d([[validation[i] for i in range(window, validation.shape[0])]]).T
 
-	Xtr = np.atleast_2d([grab_nz(training, m, n) for m, n in zip(range(training.shape[0]), range(window, training.shape[0]))])
+	Xtr = np.atleast_2d([sp.grab_nz(training, m, n) for m, n in zip(range(training.shape[0]), range(window, training.shape[0]))])
 	Ytr = np.atleast_2d([[training[i] for i in range(window, training.shape[0])]]).T
-	Xtst = np.atleast_2d([grab_nz(testing, m, n) for m, n in zip(range(testing.shape[0]), range(window, testing.shape[0]))])
+	Xtst = np.atleast_2d([sp.grab_nz(testing, m, n) for m, n in zip(range(testing.shape[0]), range(window, testing.shape[0]))])
 	Ycomp = np.atleast_2d([testing[i] for i in range(window, testing.shape[0])]).T
 
 	return Xtr, Ytr, Xtst, Ycomp, x_valid, y_valid
@@ -93,101 +89,6 @@ def print_gp(pred, sigma, compare, feature, day, window):
 	plt.xlabel("Time (Hours)")
 	plt.ylabel(feature+" (predicted)")
 	plt.show()
-
-def read_5ghz_day(table_name):
-	'''
-	Input: A string that describes a table name.
-	Output: A touple of lists.
-	Description: Gets the contents of the table if it exists. For this function
-		specifically, there is an assumption that the table has a format of
-		such: it is a nx9 table with column names (Key, ts, nou, bits, pkt_num,
-		sigs, dr, phya, phyn) and is in the file 'databse.ini'. Please look at
-		documentation for DatabaseConnect() and _config() for more information.
-	'''
-	db = dc.DatabaseConnect()
-	db.connect()
-	data = db.readTable(table_name)
-	#print("Next key is:", db.getNextKey(table_name))
-	db.disconnect()
-
-	t_stamps = []
-	num_of_users = []
-	bits = []
-
-	for db_iter in sorted(data, key=lambda dummy_arr:dummy_arr[1]):
-		t_stamps.append(db_iter[1])
-		num_of_users.append(db_iter[2])
-		bits.append(db_iter[3])
-
-	return_data = [t_stamps,
-					num_of_users,
-					bits
-					]
-	return return_data
-
-def butterfilter(input_arr, title, day, freq=60):
-	'''
-	Input:
-		A list that can be represented as a time series that is the feature
-			desired to be filtered (input_arr)
-	Output:
-		A new list that are a filtered version of the input. It is the
-			same length as the input
-	'''
-	z = (0.9/4) / freq
-	begin_cutoff = 0
-	b, a = signal.butter(6, z, 'low')
-	xf = signal.lfilter(b, a, input_arr)
-	graphing = 0
-	if graphing:
-		plt.plot(input_arr[begin_cutoff:], label="Original Data")
-		plt.plot(xf[begin_cutoff:], label="Filtered Data")
-		plt.title("Filtered "+title+" for "+day)
-		plt.ylabel(title)
-		plt.xlabel("Time of day (seconds)")
-		plt.legend()
-		plt.show()
-	return xf
-
-def sub_sample(xf, title, day, sampling=60):
-	'''
-	Input:
-		A string that describes the filter (title)
-		A sampling frequency (sampling) [the default value is 60 to sample
-			the data into minute chunks]
-	Output: A list of filtered data points (1/sampling) of original size
-	'''
-	xf_copy = np.array(xf).copy()
-	xs = xf_copy[1::sampling]
-	x_axis_xs = np.array([i for i in range(1, len(xf), sampling)])
-	graphing = 0
-	if graphing:
-		plt.title("Subsampled data at a rate of " +str(sampling)+" for "+day)
-		plt.ylabel(title)
-		plt.xlabel("Time of day (seconds)")
-		plt.plot(x_axis_xs, xs, "g", label="Sampled data")
-		plt.legend()
-		plt.show()
-	return xs
-
-def savgol(input_arr, title):
-	'''
-	DEPRECATED
-	'''
-	sampling = 60
-	xf = signal.savgol_filter(input_arr, 5, 2)
-	xf_copy = np.array(xf).copy()
-	xs = xf_copy[1::sampling]
-	x_axis_xs = np.array([i for i in range(len(xf))])
-	x_axis_xs = x_axis_xs[::sampling]
-	plt.plot(input_arr, label="Original Data")
-	plt.plot(x_axis_xs, xs, label="Filtered Data")
-	plt.title("Time series and filtered data for "+title)
-	plt.ylabel(title)
-	plt.xlabel("Time of day (seconds)")
-	plt.legend()
-	plt.show()
-	return xs
 
 def mape_test(actual, estimated):
 	if( (type(actual) is np.ndarray) & (type(estimated) is np.ndarray)):
@@ -228,49 +129,6 @@ def kernel_select(kernel_str):
 
 	#print(kernel)
 	return kernel
-
-def week_data_prep(day, start_week, end_week, sample_rate, sample_rate2=None):
-	training_data = []
-	labels_5ghz = ["Number of users",
-       				"Bits"
-       				]
-
-	for week in range(start_week, end_week+1):
-		table_name = "5pi_"+str(day)+str(week)
-		day_data = read_5ghz_day(table_name)
-
-		while(day_data[2][0] < 1):
-				del day_data[2][0]
-
-		filtered_data = butterfilter(day_data[2], labels_5ghz[1], table_name)
-		sampled_data = sub_sample(filtered_data, labels_5ghz[1], table_name, sample_rate)
-		if(sample_rate2):
-			sampled_data = sub_sample(sampled_data, labels_5ghz[1], table_name, sample_rate2)
-		training_data.extend(sampled_data)
-
-	training_data = np.array(training_data)
-	return training_data
-
-def day_data_prep(days_of_week, num_of_weeks, sample_rate, sample_rate2=None):
-	training_data = []
-	labels_5ghz = ["Number of users",
-       				"Bits"
-       				]
-	for week_num in range(2, num_of_weeks+1):
-		for day in days_of_week:
-			table_name = "5pi_"+str(day)+str(week_num)
-			day_data = read_5ghz_day(table_name)
-
-			while(day_data[2][0] < 1):
-				del day_data[2][0]
-			filtered_data = butterfilter(day_data[2], labels_5ghz[1], table_name)
-			sampled_data = sub_sample(filtered_data, labels_5ghz[1], table_name, sample_rate)
-			if(sample_rate2):
-				sampled_data = sub_sample(sampled_data, labels_5ghz[1], table_name, sample_rate2)
-			training_data.extend(sampled_data)
-
-	training_data = np.array(training_data)
-	return training_data
 
 def verify_sigma(actual_series, pred_series, sigma_series):
 	upper_sigma = []
@@ -318,14 +176,14 @@ if __name__ == '__main__':
 	total_weeks=7
 
 	#bits_tr = week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
-	bits_tr = day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
+	bits_tr = dbp.day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
 	plt.plot(bits_tr)
 	plt.xlabel("Time (10-minute chunks of multiple days)")
 	plt.ylabel("Bits")
 	plt.title("Training data of "+str(total_weeks)+" total weeks (mon-fri)")# +str(end_week-begin_week+1)+" weeks")
 	plt.show()
 
-	bits_tst = week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate)
+	bits_tst = dbp.week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate)
 
 	plt.plot(bits_tst)
 	plt.xlabel("Time (minutes)")

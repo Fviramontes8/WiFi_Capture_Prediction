@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 '''
 @author: Seth Decker, Francisco Viramontes
+From: https://github.com/fviramontes8/Wifi_Capture_Prediction
+
+Packages needed: psycopg2
 
 Description: This code interfaces to a PostgreSQL database. It can build tables,
 read tables, and write to tables.
