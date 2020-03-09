@@ -7,6 +7,8 @@ Packages needed: scikit-learn, psycopg2, numpy, scipy
 From: https://github.com/fviramontes8/Wifi_Capture_Prediction
 Depends on files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
 """
+# TODO: Run code with MAPE function, set up a loop for different parameters
+#    (and differnt cv folds) to fin best ridge model.
 #Private signal processor/sampler
 import SignalProcessor as sp
 
@@ -23,8 +25,15 @@ import numpy as np
 #For ploting data
 import matplotlib.pyplot as plt
 
-#Machine Learning package for the Gaussian Process Regressor
+#Scikit learn packages for ML tools
+from sklearn.model_selection import mean_squared_error
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
+
+#Machine Learning package for Ridge regression
+from sklearn.linear_model import RidgeCV
+
+#Machine Learning package for the Gaussian Process Regressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import DotProduct as LK, WhiteKernel as WK
 from sklearn.gaussian_process.kernels import ConstantKernel as CK, Sum
@@ -32,7 +41,7 @@ from sklearn.gaussian_process.kernels import RationalQuadratic as RQ, RBF
 
 
 
-def GP_Prep(training, testing, window, validating=0):
+def tr_data_prep(training, testing, window, validating=0):
 	'''Inputs: train/test, which needs to be an array and each can be a different size, window,
 		which specifies how wide the resultant matrix of this function is.
 	Output: Training and test matricies that has window of the given input values (Xtr, Ytr, Xtst),
@@ -58,13 +67,13 @@ def GP_Prep(training, testing, window, validating=0):
 
 	return Xtr, Ytr, Xtst, Ycomp, x_valid, y_valid
 
-def print_gp(pred, sigma, compare, feature, day, window):
+def plot_gp(pred, sigma, compare, feature, day, window):
 	#print("Arguement size: ", pred.shape, sigma.shape, compare.shape)
 	#print("Feature: ", feature, "\nDay: ", day, "\nTitle ", window)
 	sigma_coef = 0.98#1.96
 	prediction_time= [p+1 for p in range(len(pred))]
 	plt.plot(prediction_time, pred, "c-", label="GP Prediction")
-	plt.plot(prediction_time, compare, "y-", label="Validation data")
+	plt.plot(prediction_time, compare, "y-", label="Actual data")
 	plt.fill(np.concatenate([prediction_time, prediction_time[::-1]]),
 			  np.concatenate([pred-sigma_coef*sigma,
 					 (pred+sigma_coef*sigma)[::-1]]),
@@ -90,6 +99,19 @@ def print_gp(pred, sigma, compare, feature, day, window):
 	plt.ylabel(feature+" (predicted)")
 	plt.show()
 
+def plot_ridge(pred, compare, feature, day, window):
+	prediction_time= [p+1 for p in range(len(pred))]
+
+	plt.plot(prediction_time, pred, "c-", label="Ridge Regression Prediction")
+	plt.plot(prediction_time, compare, "y-", label="Actual data")
+	plt.legend()
+	plt.title("Ridge Regression Prediction with 6th order Butterworth filtering,\nPredicting "
+		   +day+"day\nWith window of "+str(window))
+	plt.xlabel("Time (hours)")
+	plt.ylabel(feature+" (predicted)")
+	plt.show()
+
+
 def mape_test(actual, estimated):
 	if( (type(actual) is np.ndarray) & (type(estimated) is np.ndarray)):
 		pass
@@ -110,7 +132,7 @@ def kernel_select(kernel_str):
 	if kernel_str == "linear":
 		kernel1 = LK(sigma_0 = 10, sigma_0_bounds=(10e-1, 10e2))
 		kernel2 = CK(constant_value=1)
-		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-1, 10e1))
+		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-5, 10e-2))
 		kernel = Sum(kernel1, kernel2)
 		kernel = Sum(kernel, kernel3)
 	elif kernel_str == "RBF":
@@ -173,7 +195,7 @@ if __name__ == '__main__':
 	init_sample_rate = 60
 	second_sample_rate = 6
 	test_week=15
-	total_weeks=7
+	total_weeks=4
 
 	#bits_tr = week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
 	bits_tr = dbp.day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
@@ -192,20 +214,34 @@ if __name__ == '__main__':
 	plt.show()
 	#print("Test shape", bits_tst.shape)
 
-	#Declaration of the Gaussian Process Regressor with its kernel parameters
-	kernel = kernel_select("linear")
-	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
-                              	normalize_y=False, alpha=1e-3)
+	#Parameters for formatting training data
 	window = 10
 	validating = 0
 
-	#Transforming the input data so that it can be used in the Gaussian Process
-	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = GP_Prep(bits_tr, bits_tst, window, validating)
+	#Transforming the input data so that it can be used in a regressor
+	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = tr_data_prep(bits_tr, bits_tst, window, validating)
 
 	print("x_training:", Xtr.shape, "\ty_training:", Ytr.shape)
 	print("x_valid:", Xvalid.shape, "\ty_valid:", Yvalid.shape)
 	print("x_test:", Xtst.shape, "\ty_tst:", Ycomp.shape)
 
+	#Here begins the ridge regression
+	best_ridge_regressor = RidgeCV(alphas=[1e-5, 1e-3, 1e-1, 1e0, 1e1, 1e3], cv=5).fit(Xtr, Ytr)
+
+	print("Ridge regresson best params: ", best_ridge_regressor.alpha_)
+	print("Chi-squared test against training data: ", best_ridge_regressor.score(Xtr, Ytr))
+
+	ridge_y_pred = best_ridge_regressor.predict(Xtst)
+
+	ridge_mape_score = mape_test(Ycomp, ridge_y_pred) * 100
+	print("MAPE score for ridge: ", ridge_mape_score)
+	plot_ridge(ridge_y_pred, Ycomp, "Bits", day, str(window)+"\nand MAPE of "+str(ridge_mape_score))
+
+
+	#Declaration of the Gaussian Process Regressor with its kernel parameters
+	kernel = kernel_select("linear")
+	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
+                              	normalize_y=False, alpha=1e-3)
 
 	print("Training the Gaussian Process...\n")
 	gp.fit(Xtr, Ytr)
@@ -222,26 +258,25 @@ if __name__ == '__main__':
 		print("Chi-squared against validation data: ", gp.score(Xvalid, Yvalid))
 		mape_valid_score = mape_test(Yvalid, y_valid_pred) * 100
 		print("MAPE between actual and validation: ", mape_valid_score)
-		print_gp(y_valid_pred, y_valid_sigma, Yvalid, "Bits", day, str(window)+"\nMAPE: "+str(mape_valid_score))
+		plot_gp(y_valid_pred, y_valid_sigma, Yvalid, "Bits", day, str(window)+"\nMAPE: "+str(mape_valid_score))
 
 
 	#Plotting prediction
-	y_pred, y_sigma = gp.predict(Xtst, return_std=True)
+	gp_y_pred, gp_y_sigma = gp.predict(Xtst, return_std=True)
 	print("Chi-squared test against real data: ", gp.score(Xtst,Ycomp))
-	mape_testing_score = mape_test(Ycomp, y_pred) * 100
+	mape_testing_score = mape_test(Ycomp, gp_y_pred) * 100
 	print("MAPE between acutal and estimated:", mape_testing_score)
-	print_gp(y_pred, y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	plot_gp(gp_y_pred, gp_y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
-	print_gp(y_pred[:400], y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	plot_gp(gp_y_pred[:400], gp_y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	plot_gp(gp_y_pred[400:800], gp_y_sigma[400:800], Ycomp[400:800], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	plot_gp(gp_y_pred[800:], gp_y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
-	print_gp(y_pred[400:800], y_sigma[400:800], Ycomp[400:800], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-	print_gp(y_pred[800:], y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-
-	plt.plot(y_sigma)
+	plt.plot(gp_y_sigma)
 	plt.title("Standard deviation")
 	plt.show()
 
-	one_sigma, two_sigma = verify_sigma(Ycomp, y_pred, y_sigma)
+	one_sigma, two_sigma = verify_sigma(Ycomp, gp_y_pred, gp_y_sigma)
 	if(one_sigma):
 		print("Prediction is within 65% of the variance")
 	else:
