@@ -119,7 +119,7 @@ def mape_test(actual, estimated):
 	size = len(actual)
 	result = 0.0
 	for i in range(size):
-		result += float( np.abs(actual[i]-estimated[i]) / actual[i])
+		result += np.abs( (actual[i]-estimated[i]) / actual[i] )
 		#print("Test resul:", result)
 	result /= size
 	return result
