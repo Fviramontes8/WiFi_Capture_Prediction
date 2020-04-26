@@ -11,6 +11,8 @@ From: https://github.com/fviramontes8/Wifi_Capture_Prediction
 #For matrix and linear algebra calcualtions
 import numpy as np
 
+from math import sqrt
+
 #For use of the butterworth and Savgol filters
 from scipy import signal
 
@@ -20,10 +22,30 @@ import matplotlib.pyplot as plt
 def mean(values):
     '''Determines the mean of an array'''
     if len(values) > 0:
-        return sum(values) / float(len(values))
-    else:
-        print("Usage:\n\tmean(values)\n\t\tvalues is an array of length greater than 0")
-        return 0
+        return sum(values) / len(values)
+
+def variance(values):
+	'''Calculates and returns the variance of an array-like input'''
+	mu = mean(values)
+	value_sum = 0.0
+	for i in values:
+		value_sum += (i - mu) ** 2
+	return value_sum / len(values)
+
+def std_dev(values):
+	'''Returns the standard deviation of an array-like input'''
+	return sqrt(variance(values))
+
+def std_normalization(values):
+	'''Normalizes an array by subtacting the mean and dividing by the standard deviation'''
+	mu = mean(values)
+	sigma = std_dev(values)
+
+	normalized_values = values[:]
+	for i in range(len(normalized_values)):
+		normalized_values[i] = (normalized_values[i] - mu) / sigma
+
+	return normalized_values
 
 def grab_nz(array, n ,z):
 	'''Gets the first n to z values of an array, returns error if n is greater
@@ -33,7 +55,7 @@ def grab_nz(array, n ,z):
 		return np.atleast_1d([array[i] for i in range(n, z)]).T
 	else:
 		print("Usage: \n\tgrab_nz(array, n, z)\n\t\tn must be less than the length of array and n < z < len(array)")
-		return -1
+		return None
 
 def butterfilter(input_arr, title, day, freq=60):
 	'''

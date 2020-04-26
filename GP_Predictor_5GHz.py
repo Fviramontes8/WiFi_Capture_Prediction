@@ -15,9 +15,6 @@ import SignalProcessor as sp
 #Private database processor
 import DatabaseProcessor as dbp
 
-#Package to interface with AWS database
-import DatabaseConnector as dc
-
 #For matrix and linear algebra calcualtions
 import numpy as np
 #np.set_printoptions(threshold=np.nan)
@@ -26,7 +23,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #Scikit learn packages for ML tools
-from sklearn.model_selection import mean_squared_error
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 
@@ -123,6 +120,7 @@ def mape_test(actual, estimated):
 	result = 0.0
 	for i in range(size):
 		result += float( np.abs(actual[i]-estimated[i]) / actual[i])
+		#print("Test resul:", result)
 	result /= size
 	return result
 
@@ -132,7 +130,7 @@ def kernel_select(kernel_str):
 	if kernel_str == "linear":
 		kernel1 = LK(sigma_0 = 10, sigma_0_bounds=(10e-1, 10e2))
 		kernel2 = CK(constant_value=1)
-		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-5, 10e-2))
+		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-4, 10e-2))
 		kernel = Sum(kernel1, kernel2)
 		kernel = Sum(kernel, kernel3)
 	elif kernel_str == "RBF":
@@ -152,7 +150,7 @@ def kernel_select(kernel_str):
 	#print(kernel)
 	return kernel
 
-def verify_sigma(actual_series, pred_series, sigma_series):
+def verify_one_sigma(actual_series, pred_series, sigma_series):
 	upper_sigma = []
 	for i in range(len(pred_series)):
 		upper_sigma.append(pred_series[i] + sigma_series[i])
@@ -161,20 +159,38 @@ def verify_sigma(actual_series, pred_series, sigma_series):
 	for j in range(len(pred_series)):
 		lower_sigma.append(pred_series[j] - sigma_series[j])
 
-	count = 0
+	sigma_one_count = 0
 	for h in range(len(pred_series)):
 		if((actual_series[h] <= upper_sigma[h]) & (actual_series[h] >= lower_sigma[h])):
-			count += 1
+			sigma_one_count += 1
 
 	one_sigma=False
-	two_sigma=False
-	if( count > (len(actual_series) * 0.65)):
+	if( sigma_one_count > (len(actual_series) * 0.65)):
 		one_sigma = True
 
-	if( count > (len(actual_series) * 0.95)):
+	return one_sigma
+
+def verify_two_sigma(actual_series, pred_series, sigma_series):
+	upper_sigma = []
+	for i in range(len(pred_series)):
+		upper_sigma.append(pred_series[i] + (1.98* sigma_series[i]))
+
+	lower_sigma = []
+	for j in range(len(pred_series)):
+		lower_sigma.append(pred_series[j] - (1.98* sigma_series[i]))
+
+	sigma_two_count = 0
+	for h in range(len(pred_series)):
+		if((actual_series[h] <= upper_sigma[h]) & (actual_series[h] >= lower_sigma[h])):
+			sigma_two_count += 1
+
+	two_sigma=False
+
+	if( sigma_two_count > (len(actual_series) * 0.95)):
 		two_sigma = True
 
-	return one_sigma, two_sigma
+	return two_sigma
+
 
 if __name__ == '__main__':
 	#Reading data from database
@@ -193,9 +209,9 @@ if __name__ == '__main__':
 	begin_week = 2
 	end_week = 14
 	init_sample_rate = 60
-	second_sample_rate = 6
+	second_sample_rate = 60
 	test_week=15
-	total_weeks=4
+	total_weeks=13
 
 	#bits_tr = week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
 	bits_tr = dbp.day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
@@ -205,9 +221,23 @@ if __name__ == '__main__':
 	plt.title("Training data of "+str(total_weeks)+" total weeks (mon-fri)")# +str(end_week-begin_week+1)+" weeks")
 	plt.show()
 
+	normalized_tr = sp.std_normalization(bits_tr)
+	plt.plot(normalized_tr)
+	plt.xlabel("Time (10-minute chunks of multiple days)")
+	plt.ylabel("Bits (normalized)")
+	plt.title("Training data of "+str(total_weeks)+" total weeks (mon-fri)")# +str(end_week-begin_week+1)+" weeks")
+	plt.show()
+
 	bits_tst = dbp.week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate)
 
 	plt.plot(bits_tst)
+	plt.xlabel("Time (minutes)")
+	plt.ylabel("Bits")
+	plt.title("Testing data")
+	plt.show()
+
+	normalized_tst = sp.std_normalization(bits_tst)
+	plt.plot(normalized_tst)
 	plt.xlabel("Time (minutes)")
 	plt.ylabel("Bits")
 	plt.title("Testing data")
@@ -219,14 +249,21 @@ if __name__ == '__main__':
 	validating = 0
 
 	#Transforming the input data so that it can be used in a regressor
-	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = tr_data_prep(bits_tr, bits_tst, window, validating)
+	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = tr_data_prep(normalized_tr, normalized_tst, window, validating)
 
 	print("x_training:", Xtr.shape, "\ty_training:", Ytr.shape)
 	print("x_valid:", Xvalid.shape, "\ty_valid:", Yvalid.shape)
 	print("x_test:", Xtst.shape, "\ty_tst:", Ycomp.shape)
 
 	#Here begins the ridge regression
-	best_ridge_regressor = RidgeCV(alphas=[1e-5, 1e-3, 1e-1, 1e0, 1e1, 1e3], cv=5).fit(Xtr, Ytr)
+
+	'''
+	for cvs in range(2, 15):
+		best_ridge_regressor = RidgeCV(alphas=[1e-5, 1e-4, 1e-3, 1e-1, 1e0, 1e1, 1e3, 1e4], cv=cvs).fit(Xtr, Ytr)
+		print("Best alpha for ", cvs, " folds: ", best_ridge_regressor.alpha_)
+	'''
+	best_ridge_regressor = RidgeCV(alphas=[1e1, 1e2, 1e3, 1e4, 1e5, 1e6], cv=12).fit(Xtr, Ytr)
+
 
 	print("Ridge regresson best params: ", best_ridge_regressor.alpha_)
 	print("Chi-squared test against training data: ", best_ridge_regressor.score(Xtr, Ytr))
@@ -269,14 +306,16 @@ if __name__ == '__main__':
 	plot_gp(gp_y_pred, gp_y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
 	plot_gp(gp_y_pred[:400], gp_y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-	plot_gp(gp_y_pred[400:800], gp_y_sigma[400:800], Ycomp[400:800], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	plot_gp(gp_y_pred[600:700], gp_y_sigma[600:700], Ycomp[600:700], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 	plot_gp(gp_y_pred[800:], gp_y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
 	plt.plot(gp_y_sigma)
 	plt.title("Standard deviation")
 	plt.show()
 
-	one_sigma, two_sigma = verify_sigma(Ycomp, gp_y_pred, gp_y_sigma)
+	#one_sigma, two_sigma = verify_sigma(Ycomp, gp_y_pred, gp_y_sigma)
+	one_sigma = verify_one_sigma(Ycomp, gp_y_pred, gp_y_sigma)
+	two_sigma = verify_two_sigma(Ycomp, gp_y_pred, gp_y_sigma)
 	if(one_sigma):
 		print("Prediction is within 65% of the variance")
 	else:
@@ -286,3 +325,9 @@ if __name__ == '__main__':
 		print("Prediction is within 95% of the variance")
 	else:
 		print("Predicition is not with 95% of the variance")
+
+	#Coparing Ridge regression with the Gaussian process:
+	ridge_mse = mean_squared_error(Ycomp, ridge_y_pred)
+	gp_mse = mean_squared_error(Ycomp, gp_y_pred)
+	print("Ridge mse: ", ridge_mse)
+	print("GP mse: ", gp_mse)
