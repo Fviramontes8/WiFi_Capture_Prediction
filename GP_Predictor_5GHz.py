@@ -77,7 +77,7 @@ def plot_gp(pred, sigma, compare, feature, day, window):
 			  alpha=.5, fc='b', ec='none')
 	plt.legend()
 	plt.title("Gaussian Process Prediction with 6th order Butterworth filtering,\nPredicting "
-		   +day+"day\nWith window of "+str(window)+"\nAnd sigma of "+str(sigma_coef))
+		   +day+"day\nWith window of "+str(window)+"\nAnd 1 standard deviation")
 	plt.xlabel("Time (Hours)")
 	plt.ylabel(feature+" (predicted)")
 	plt.show()
@@ -91,7 +91,7 @@ def plot_gp(pred, sigma, compare, feature, day, window):
 			  alpha=.5, fc='b', ec='none')
 	plt.legend()
 	plt.title("Gaussian Process Prediction with 6th order Butterworth filter,\nPredicting "
-		   +day+"day\nWith window of "+str(window)+"\nAnd sigma of "+str(sigma_coef))
+		   +day+"day\nWith window of "+str(window)+"\nAnd two standard deviations")
 	plt.xlabel("Time (Hours)")
 	plt.ylabel(feature+" (predicted)")
 	plt.show()
@@ -114,24 +114,24 @@ def mape_test(actual, estimated):
 		pass
 	else:
 		print("Inputs must be data type: numpy.ndarray")
-		return -1;
+		return None;
 
 	size = len(actual)
 	result = 0.0
 	for i in range(size):
-		result += np.abs( (actual[i]-estimated[i]) / actual[i] )
+		result += np.abs( ( np.abs(actual[i]) - np.abs(estimated[i]))  / actual[i] )
 		#print("Test resul:", result)
 	result /= size
-	return result
+	return float(result)
 
 def kernel_select(kernel_str):
 	if type(kernel_str) is not str:
 		print("Input is not a string! Defaulting to a linear kernel\n")
 	if kernel_str == "linear":
-		kernel1 = LK(sigma_0 = 10, sigma_0_bounds=(10e-1, 10e2))
-		kernel2 = CK(constant_value=1)
-		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-4, 10e-2))
-		kernel = Sum(kernel1, kernel2)
+		kernel1 = LK(sigma_0 = 1, sigma_0_bounds=(10e-3, 10e3))
+		kernel2 = CK(constant_value=1e-4)
+		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-5, 10e-1))
+		kernel = Sum(kernel1, kernel3)
 		kernel = Sum(kernel, kernel3)
 	elif kernel_str == "RBF":
 		kernel1 = RBF(length_scale=10e2, length_scale_bounds=(1e1, 1e3))
@@ -164,11 +164,7 @@ def verify_one_sigma(actual_series, pred_series, sigma_series):
 		if((actual_series[h] <= upper_sigma[h]) & (actual_series[h] >= lower_sigma[h])):
 			sigma_one_count += 1
 
-	one_sigma=False
-	if( sigma_one_count > (len(actual_series) * 0.65)):
-		one_sigma = True
-
-	return one_sigma
+	return sigma_one_count/len(actual_series)
 
 def verify_two_sigma(actual_series, pred_series, sigma_series):
 	upper_sigma = []
@@ -184,12 +180,7 @@ def verify_two_sigma(actual_series, pred_series, sigma_series):
 		if((actual_series[h] <= upper_sigma[h]) & (actual_series[h] >= lower_sigma[h])):
 			sigma_two_count += 1
 
-	two_sigma=False
-
-	if( sigma_two_count > (len(actual_series) * 0.95)):
-		two_sigma = True
-
-	return two_sigma
+	return sigma_two_count/len(actual_series)
 
 
 if __name__ == '__main__':
@@ -209,7 +200,7 @@ if __name__ == '__main__':
 	begin_week = 2
 	end_week = 14
 	init_sample_rate = 60
-	second_sample_rate = 60
+	second_sample_rate = 30
 	test_week=15
 	total_weeks=13
 
@@ -221,35 +212,37 @@ if __name__ == '__main__':
 	plt.title("Training data of "+str(total_weeks)+" total weeks (mon-fri)")# +str(end_week-begin_week+1)+" weeks")
 	plt.show()
 
-	normalized_tr = sp.std_normalization(bits_tr)
-	plt.plot(normalized_tr)
+	#Normalizing training data
+	bits_tr = sp.std_normalization(bits_tr)
+	plt.plot(bits_tr)
 	plt.xlabel("Time (10-minute chunks of multiple days)")
 	plt.ylabel("Bits (normalized)")
 	plt.title("Training data of "+str(total_weeks)+" total weeks (mon-fri)")# +str(end_week-begin_week+1)+" weeks")
 	plt.show()
 
-	bits_tst = dbp.week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate)
+	bits_tst = dbp.week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate, second_sample_rate)
 
 	plt.plot(bits_tst)
-	plt.xlabel("Time (minutes)")
+	plt.xlabel("Time (10-minute chunks of multiple days)")
 	plt.ylabel("Bits")
 	plt.title("Testing data")
 	plt.show()
 
-	normalized_tst = sp.std_normalization(bits_tst)
-	plt.plot(normalized_tst)
-	plt.xlabel("Time (minutes)")
+	#Normalizing testing data
+	bits_tst = sp.std_normalization(bits_tst)
+	plt.plot(bits_tst)
+	plt.xlabel("Time (10-minute chunks of multiple days)")
 	plt.ylabel("Bits")
 	plt.title("Testing data")
 	plt.show()
 	#print("Test shape", bits_tst.shape)
 
 	#Parameters for formatting training data
-	window = 10
+	window = 5
 	validating = 0
 
 	#Transforming the input data so that it can be used in a regressor
-	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = tr_data_prep(normalized_tr, normalized_tst, window, validating)
+	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = tr_data_prep(bits_tr, bits_tst, window, validating)
 
 	print("x_training:", Xtr.shape, "\ty_training:", Ytr.shape)
 	print("x_valid:", Xvalid.shape, "\ty_valid:", Yvalid.shape)
@@ -300,14 +293,15 @@ if __name__ == '__main__':
 
 	#Plotting prediction
 	gp_y_pred, gp_y_sigma = gp.predict(Xtst, return_std=True)
+	print("\n Shapes:", gp_y_pred.shape, ",\t", Ycomp.shape, "\n")
 	print("Chi-squared test against real data: ", gp.score(Xtst,Ycomp))
 	mape_testing_score = mape_test(Ycomp, gp_y_pred) * 100
 	print("MAPE between acutal and estimated:", mape_testing_score)
 	plot_gp(gp_y_pred, gp_y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
 	plot_gp(gp_y_pred[:400], gp_y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-	plot_gp(gp_y_pred[600:700], gp_y_sigma[600:700], Ycomp[600:700], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
-	plot_gp(gp_y_pred[800:], gp_y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	#plot_gp(gp_y_pred[600:700], gp_y_sigma[600:700], Ycomp[600:700], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	#plot_gp(gp_y_pred[800:], gp_y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
 	plt.plot(gp_y_sigma)
 	plt.title("Standard deviation")
@@ -316,18 +310,18 @@ if __name__ == '__main__':
 	#one_sigma, two_sigma = verify_sigma(Ycomp, gp_y_pred, gp_y_sigma)
 	one_sigma = verify_one_sigma(Ycomp, gp_y_pred, gp_y_sigma)
 	two_sigma = verify_two_sigma(Ycomp, gp_y_pred, gp_y_sigma)
-	if(one_sigma):
-		print("Prediction is within 65% of the variance")
-	else:
-		print("Predicition is not with 65% of the variance")
+	print(one_sigma,"is contained within 1 standard deviation")
 
-	if(two_sigma):
-		print("Prediction is within 95% of the variance")
-	else:
-		print("Predicition is not with 95% of the variance")
+	print(two_sigma, "is contained within 2 standard deviations")
 
 	#Coparing Ridge regression with the Gaussian process:
 	ridge_mse = mean_squared_error(Ycomp, ridge_y_pred)
 	gp_mse = mean_squared_error(Ycomp, gp_y_pred)
 	print("Ridge mse: ", ridge_mse)
 	print("GP mse: ", gp_mse)
+
+	plt.plot(Ycomp)
+	plt.xlabel("Time (minutes)")
+	plt.ylabel("Bits")
+	plt.title("Ycomp")
+	plt.show()
