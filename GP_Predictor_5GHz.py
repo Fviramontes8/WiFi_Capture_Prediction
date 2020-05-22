@@ -279,7 +279,7 @@ if __name__ == '__main__':
 	print("Chi-squared test against training data: ", gp.score(Xtr,Ytr))
 	y_self_pred, y_self_sigma = gp.predict(Xtr, return_std=True)
 	print("self_pred: ", y_self_pred.shape, " ycomp: ", Ytr.shape, " self_sigma: ", y_self_sigma.shape)
-	#print_gp(y_self_pred, y_self_sigma, np.array(Ytr), "Bits", day, str(window)+"\nMAPE: "+str(mape_test(Ytr, y_self_pred) * 100))
+	plot_gp(y_self_pred, y_self_sigma, np.array(Ytr), "Bits", day, str(window)+"\nMAPE: "+str(mape_test(Ytr, y_self_pred) * 100))
 	#print(gp.get_params(deep=True))
 
 	if(validating):
