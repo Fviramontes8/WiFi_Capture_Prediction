@@ -27,6 +27,7 @@ def plot_gp(pred, sigma, compare, plot_title):
 	# X-axis for actual data
 	compare_time = np.linspace(-2, 2, len(compare))
 	
+	"""
 	plt.plot(prediction_time, pred, "c-", label="GP Prediction")
 	plt.plot(compare_time, compare, "k.", label="Actual data")
 	plt.plot(prediction_time, pred+sigma_coef*sigma, "k--", label="Standard Deviation")
@@ -38,6 +39,7 @@ def plot_gp(pred, sigma, compare, plot_title):
 	plt.xlim(-6, 6)
 	plt.ylim(-10, 10)
 	plt.show()
+	"""
 
 	sigma_coef = 1.96
 	plt.plot(prediction_time, pred, "c-", label="GP Prediction")
@@ -127,7 +129,7 @@ def verify_two_sigma(actual_series, pred_series, sigma_series):
 
 if __name__ == "__main__":
 	Xtr = np.linspace(-2, 2, 10)
-	Ytr = np.random.normal(0, 1, 10)
+	Ytr = Xtr + np.random.normal(0, 1, 10)
 	
 	plt.title("Inital data")
 	plt.plot(Ytr, Xtr, ".")
@@ -138,7 +140,7 @@ if __name__ == "__main__":
 	plt.show()
 	
 	Xtr = Xtr.reshape(1, -1).T
-	Xtst = np.linspace(-10, 10, 100).reshape(1, -1).T
+	Xtst = np.linspace(-10, 10, 200).reshape(1, -1).T
 	
 	kernel = kernel_select("linear")
 	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
@@ -163,4 +165,14 @@ if __name__ == "__main__":
 	two_sigma = verify_two_sigma(Ytr, y_self_pred[Y_lower_slice:Y_upper_slice], y_self_sigma[Y_lower_slice:Y_upper_slice])
 	print(one_sigma,"is contained within 1 standard deviation")
 	print(two_sigma, "is contained within 2 standard deviations")
+	
+	
+	Ytst = Xtst + np.random.normal(0, 1, 200)
+	plt.title("Test data")
+	plt.plot(Ytst, Xtst, ".")
+	plt.xlabel("x")
+	plt.ylabel("y")
+	plt.xlim(-6, 6)
+	plt.ylim(-10, 10)
+	plt.show()
 	
