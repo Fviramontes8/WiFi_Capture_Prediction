@@ -22,7 +22,7 @@ def plot_gp(pred, sigma, compare, plot_title):
 	sigma_coef = 0.98
 	
 	# X-axis for predition data
-	prediction_time= np.linspace(-10, 10, len(pred))
+	prediction_time= np.linspace(-6, 6, len(pred))
 	
 	# X-axis for actual data
 	compare_time = np.linspace(-2, 2, len(compare))
@@ -53,6 +53,29 @@ def plot_gp(pred, sigma, compare, plot_title):
 	plt.xlim(-6, 6)
 	plt.ylim(-10, 10)
 	plt.show()
+	
+def plot_gp2(pred, sigma, compare, plot_title):
+	# Coefficient for calculation 1 standard deviation
+	sigma_coef = 0.98
+	
+	# X-axis for predition data
+	prediction_time= np.linspace(-6, 6, len(pred))
+	
+	# X-axis for actual data
+	compare_time = np.linspace(-6, 6, len(compare))
+
+	sigma_coef = 1.96
+	plt.plot(prediction_time, pred, "c-", label="GP Prediction")
+	plt.plot(compare_time, compare, "k.", label="Validation data")
+	plt.plot(prediction_time, pred+sigma_coef*sigma, "k--", label="Standard Deviation")
+	plt.plot(prediction_time, pred-sigma_coef*sigma, "k--")
+	plt.legend()
+	plt.title("Gaussian Process Prediction\n"+str(plot_title)+"\nAnd two standard deviations")
+	plt.xlabel("x")
+	plt.ylabel("y")
+	plt.xlim(-6, 6)
+	plt.ylim(-10, 10)
+	plt.show()
 
 def mape_test(actual, estimated):
 	if( (type(actual) is np.ndarray) & (type(estimated) is np.ndarray)):
@@ -65,7 +88,8 @@ def mape_test(actual, estimated):
 	result = 0.0
 	for i in range(size):
 		result += np.abs( (actual[i] - estimated[i])  / actual[i] )
-	result /= size"""
+	result /= size
+	"""
 	result = np.mean(np.abs((actual-estimated)/actual))
 	return float(result)
 
@@ -74,8 +98,8 @@ def kernel_select(kernel_str):
 		print("Input is not a string! Defaulting to a linear kernel\n")
 	if kernel_str == "linear":
 		kernel1 = LK(sigma_0 = 1, sigma_0_bounds=(10e-3, 10e3))
-		kernel2 = CK(constant_value=1e-4)
-		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-5, 10e-1))
+		kernel2 = CK(constant_value=1)
+		kernel3 = WK(noise_level=10e0, noise_level_bounds = (10e-1, 10e1))
 		kernel = Sum(kernel1, kernel3)
 		kernel = Sum(kernel, kernel3)
 	elif kernel_str == "RBF":
@@ -131,16 +155,10 @@ if __name__ == "__main__":
 	Xtr = np.linspace(-2, 2, 10)
 	Ytr = Xtr + np.random.normal(0, 1, 10)
 	
-	plt.title("Inital data")
-	plt.plot(Ytr, Xtr, ".")
-	plt.xlabel("x")
-	plt.ylabel("y")
-	plt.xlim(-6, 6)
-	plt.ylim(-10, 10)
-	plt.show()
-	
 	Xtr = Xtr.reshape(1, -1).T
-	Xtst = np.linspace(-10, 10, 200).reshape(1, -1).T
+	Xtst = np.linspace(-6, 6, 200)
+	Ytst = Xtst + np.random.normal(0, 1, 200)
+	Xtst = Xtst.reshape(1, -1).T
 	
 	kernel = kernel_select("linear")
 	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
@@ -150,6 +168,7 @@ if __name__ == "__main__":
 	gp.fit(Xtr, Ytr)
 	print("Marginal likelihood:", gp.log_marginal_likelihood())
 	y_self_pred, y_self_sigma = gp.predict(Xtst, return_std=True)
+	y_tr_pred, y_tr_sigma = gp.predict(Xtr, return_std=True)
 	print("self_pred: ", y_self_pred.shape, " ycomp: ", Ytr.shape, " self_sigma: ", y_self_sigma.shape)
 	
 	# Slicing overlapping data with training data
@@ -161,18 +180,43 @@ if __name__ == "__main__":
 	#Sigma verification for the first prediction
 	Y_lower_slice = int((len(y_self_pred)/2) - (len(Ytr)/2))
 	Y_upper_slice = int((len(y_self_pred)/2) + (len(Ytr)/2))
-	one_sigma = verify_one_sigma(Ytr, y_self_pred[Y_lower_slice:Y_upper_slice], y_self_sigma[Y_lower_slice:Y_upper_slice])
-	two_sigma = verify_two_sigma(Ytr, y_self_pred[Y_lower_slice:Y_upper_slice], y_self_sigma[Y_lower_slice:Y_upper_slice])
+	#one_sigma = verify_one_sigma(Ytr, y_self_pred[Y_lower_slice:Y_upper_slice], y_self_sigma[Y_lower_slice:Y_upper_slice])
+	#two_sigma = verify_two_sigma(Ytr, y_self_pred[Y_lower_slice:Y_upper_slice], y_self_sigma[Y_lower_slice:Y_upper_slice])
+	one_sigma = verify_one_sigma(Ytr, y_tr_pred, y_tr_sigma)
+	two_sigma = verify_two_sigma(Ytr, y_tr_pred, y_tr_sigma)
 	print(one_sigma,"is contained within 1 standard deviation")
 	print(two_sigma, "is contained within 2 standard deviations")
 	
+	plot_gp2(y_self_pred, y_self_sigma, Ytst, "First prediction to testing")
 	
-	Ytst = Xtst + np.random.normal(0, 1, 200)
-	plt.title("Test data")
-	plt.plot(Ytst, Xtst, ".")
-	plt.xlabel("x")
-	plt.ylabel("y")
-	plt.xlim(-6, 6)
-	plt.ylim(-10, 10)
-	plt.show()
+	one_sigma = verify_one_sigma(Ytst, y_self_pred, y_self_sigma)
+	two_sigma = verify_two_sigma(Ytst, y_self_pred, y_self_sigma)
+	print(one_sigma,"is contained within 1 standard deviation")
+	print(two_sigma, "is contained within 2 standard deviations")
 	
+	# Second experiment
+	Xtr2 = np.linspace(-6, 6, 10)
+	Ytr2 = Xtr2 + np.random.normal(0, 1, 10)
+	
+	Xtr2 = Xtr2.reshape(1, -1).T
+	Xtst2 = np.linspace(-6, 6, 200)
+	Ytst2 = Xtst2 + np.random.normal(0, 1, 200)
+	Xtst2 = Xtst2.reshape(1, -1).T
+	
+	print("Training the Gaussian Process...\n")
+	gp.fit(Xtr2, Ytr2)
+	
+	y_pred2, y_sigma2 = gp.predict(Xtst2, return_std=True)
+	y_tr_pred2, y_tr_sigma2 = gp.predict(Xtr2, return_std=True)
+	
+	plot_gp2(y_pred2, y_sigma2, Ytr2, "Second prediction compared to training")
+	one_sigma = verify_one_sigma(Ytr2, y_tr_pred2, y_tr_sigma2)
+	two_sigma = verify_two_sigma(Ytr2, y_tr_pred2, y_tr_sigma2)
+	print(one_sigma,"is contained within 1 standard deviation")
+	print(two_sigma, "is contained within 2 standard deviations")
+	
+	plot_gp2(y_pred2, y_sigma2, Ytst2, "Second prediction compared to testing")
+	one_sigma = verify_one_sigma(Ytst2, y_pred2, y_sigma2)
+	two_sigma = verify_two_sigma(Ytst2, y_pred2, y_sigma2)
+	print(one_sigma,"is contained within 1 standard deviation")
+	print(two_sigma, "is contained within 2 standard deviations")
