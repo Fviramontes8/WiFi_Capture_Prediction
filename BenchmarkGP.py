@@ -4,7 +4,7 @@ This program benmarks a simple Gaussian Process
 @author: Frankie
 """
 
-#For matrix and linear algebra calcualtions
+#For matrix and linear algebra calculations
 import numpy as np
 
 #For ploting data
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 	Ytst = Xtst + np.random.normal(0, 1, 200)
 	Xtst = Xtst.reshape(1, -1).T
 	
-	kernel = kernel_select("linear")
+	kernel = kernel_select("linear") # linear == y = mx + b
 	gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10,\
                               	normalize_y=False, alpha=1e-3)
 	
