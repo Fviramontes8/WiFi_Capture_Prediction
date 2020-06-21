@@ -10,7 +10,7 @@ DatabaseProcessor.py - TBD
 
 SignalProcessor.py - TBD
 
-## Library requirements
+## Library requirements (conda is recommended when available)
 
 ### psycopg2 for database capabilities
 
@@ -32,7 +32,7 @@ or
 
     conda install scipy
 
-### matplotlib for ploting figures
+### matplotlib for plotting figures
 
     pip install matplotlib
 
@@ -47,6 +47,28 @@ or
 or
     
     conda install scikit-learn
+
+### PyTorch (GPU version)
+
+    pip install torch torchvision
+
+or
+
+    conda install pytorch torchvision cuda=x -c pytorch
+
+Where `x` is CUDA version `9.2`, `10.1`, `10.2`.
+
+### PyTorch (CPU version)
+
+    pip install torch==1.5.1+cpu torchvision==0.6.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+
+or
+
+    conda install pytorch torchvision cpuonly -c pytorch
+
+### GPyTorch
+
+    pip install gpytorch
 
 ## Documenation generation
 
