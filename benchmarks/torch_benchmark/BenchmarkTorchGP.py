@@ -6,7 +6,9 @@
 import torch
 import gpytorch
 from sklearn.metrics import mean_squared_error as mse
+
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 class ExactGPModel(gpytorch.models.ExactGP):
@@ -119,6 +121,18 @@ def verify_confidence_region(YPred, YTrue):
 
 	return sigma1_count/len(YTrue), sigma2_count/len(YTrue)
 
+def mape_test(actual, estimated):
+	assert(type(actual) == np.ndarray)
+	assert(type(estimated) == np.ndarray)
+	"""
+	size = len(actual)
+	result = 0.0
+	for i in range(size):
+		result += np.abs( (actual[i] - estimated[i])  / actual[i] )
+	result /= size
+	"""
+	result = np.mean(np.abs((actual-estimated)/actual))
+	return float(result)
 
 if __name__ == "__main__":
 	#########################################################
@@ -176,6 +190,7 @@ if __name__ == "__main__":
 
 	print("1 standard deviation/2 standard deviation confidence for test:", tst_sigma1, tst_sigma2)
 	print("MSE:", mse(ytst, pred.mean.numpy()))
+	print("MAPE:", mape_test(ytst.numpy(), pred.mean.numpy()))
 
 
 	#########################################################
@@ -221,3 +236,4 @@ if __name__ == "__main__":
 
 	print("1 standard deviation/2 standard deviation confidence:", tst2_sigma1, tst2_sigma2)
 	print("MSE", mse(ytst2, pred.mean.numpy()))
+	print("MAPE:", mape_test(ytst2.numpy(), pred.mean.numpy()))
