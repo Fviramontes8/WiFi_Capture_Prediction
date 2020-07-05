@@ -91,7 +91,7 @@ def PlotGPPred(XCompare, YCompare, XPred, YPred, Title=""):
 		ax.set_ylim([-10, 10])
 		ax.set_xlim([-6, 6])
 		ax.set_title(Title)
-		ax.legend(["Observed Data", "Mean", "2 StdDev Confidence", "1 StdDev confidence"])
+		ax.legend(["Observed Data", "Prediction Mean", "2 StdDev Confidence", "1 StdDev confidence"])
 
 """
 Returns the percent of data contained with in 1 and 2 standard deviations
