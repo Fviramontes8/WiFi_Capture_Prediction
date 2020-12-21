@@ -181,16 +181,19 @@ if __name__ == "__main__":
 
 	# Extraction confidence regions to include to title of the plot for testing data
 	tst_sigma1, tst_sigma2 = verify_confidence_region(pred, ytst)
+	# Calculate MAPE
+	mape =  mape_test(ytst.numpy(), pred.mean.numpy())
+	
 	gp_title = "Linear GP Prediction\nwith 1 standard deviation confidence (" + \
 		str(tst_sigma1) + ")\nand 2 standard deviation confidence (" + \
-		str(tst_sigma2) + ")"
+		str(tst_sigma2) + ")\nMAPE:" + str(mape)
 
 	# Plotting GP results on testing data
 	PlotGPPred(xtst, ytst, xtst, pred, gp_title)
 
 	print("1 standard deviation/2 standard deviation confidence for test:", tst_sigma1, tst_sigma2)
 	print("MSE:", mse(ytst, pred.mean.numpy()))
-	print("MAPE:", mape_test(ytst.numpy(), pred.mean.numpy()))
+	print("MAPE:", mape)
 
 
 	#########################################################
@@ -227,13 +230,16 @@ if __name__ == "__main__":
 
 	# Extracting confidence region and adding them to title for test data set
 	tst2_sigma1, tst2_sigma2 = verify_confidence_region(pred, ytst2)
+	# Calculate MAPE
+	mape =  mape_test(ytst.numpy(), pred.mean.numpy())
+	
 	gp_title = "Linear GP Prediction\nwith 1 standard deviation confidence (" + \
 		str(tst2_sigma1) + ")\nand 2 standard deviation confidence (" + \
-		str(tst2_sigma2) + ")"
+		str(tst_sigma2) + ")\nMAPE:" + str(mape)
 
 	# Plotting GP results on testing data set
 	PlotGPPred(xtst2, ytst2, xtst2, pred, gp_title)
 
 	print("1 standard deviation/2 standard deviation confidence:", tst2_sigma1, tst2_sigma2)
 	print("MSE", mse(ytst2, pred.mean.numpy()))
-	print("MAPE:", mape_test(ytst2.numpy(), pred.mean.numpy()))
+	print("MAPE:", mape)
