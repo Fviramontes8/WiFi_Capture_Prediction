@@ -53,34 +53,6 @@ def ToStdDev1(pred_mean):
 	upper1sigma = ( (upper2sigma.numpy() - pred_mean.mean.numpy()) / 1.96) + pred_mean.mean.numpy()
 
 	return lower1sigma, upper1sigma
-
-def PlotGPPred(XCompare, YCompare, XPred, YPred, Title=""):
-	with torch.no_grad():
-		fig, ax = plt.subplots(1, 1, figsize = (8, 6))
-		lower_sigma, upper_sigma = YPred.confidence_region()
-
-		sigma1_lower, sigma1_upper = ToStdDev1(YPred)
-
-		ax.plot(XCompare.numpy(), YCompare.numpy(), "k.")
-		ax.plot(XPred.numpy(), YPred.mean.numpy(), "b")
-		ax.fill_between(
-			XPred.numpy(),
-			lower_sigma.numpy(),
-			upper_sigma.numpy(),
-			alpha = 0.5
-		)
-
-		ax.fill_between(
-			XPred.numpy(),
-			sigma1_lower,
-			sigma1_upper,
-			alpha = 0.5
-		)
-
-		ax.set_ylim([-10, 10])
-		ax.set_xlim([-6, 6])
-		ax.set_title(Title)
-		ax.legend(["Observed Data", "Prediction Mean", "2 StdDev Confidence", "1 StdDev confidence"])
 		
 """
 Returns the percent of data contained with in 1 and 2 standard deviations

@@ -39,6 +39,13 @@ def PlotGPPred(XCompare, YCompare, XPred, YPred, Title=""):
 		ax.set_title(Title)
 		ax.legend(["Observed Data", "Prediction Mean", "2 StdDev Confidence", "1 StdDev confidence"])
 		
+def general_plot(data, title, xtitle, ytitle):
+	plt.plot(data)
+	plt.title(title)
+	plt.xlabel(xtitle)
+	plt.ylabel(ytitle)
+	plt.show()
+		
 def plot_gp(pred, sigma, compare, feature, day, window):
 	#print("Arguement size: ", pred.shape, sigma.shape, compare.shape)
 	#print("Feature: ", feature, "\nDay: ", day, "\nTitle ", window)

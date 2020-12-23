@@ -15,6 +15,9 @@ import SignalProcessor as sp
 #Private database processor
 import DatabaseProcessor as dbp
 
+# Custorm plot functions library
+import PlotUtils as pu
+
 #For matrix and linear algebra calcualtions
 import numpy as np
 #np.set_printoptions(threshold=np.nan)
@@ -64,50 +67,6 @@ def tr_data_prep(training, testing, window, validating=0):
 
 	return Xtr, Ytr, Xtst, Ycomp, x_valid, y_valid
 
-def plot_gp(pred, sigma, compare, feature, day, window):
-	#print("Arguement size: ", pred.shape, sigma.shape, compare.shape)
-	#print("Feature: ", feature, "\nDay: ", day, "\nTitle ", window)
-	sigma_coef = 0.98#1.96
-	prediction_time= [p+1 for p in range(len(pred))]
-	plt.plot(prediction_time, pred, "c-", label="GP Prediction")
-	plt.plot(prediction_time, compare, "y-", label="Actual data")
-	plt.fill(np.concatenate([prediction_time, prediction_time[::-1]]),
-			  np.concatenate([pred-sigma_coef*sigma,
-					 (pred+sigma_coef*sigma)[::-1]]),
-			  alpha=.5, fc='b', ec='none')
-	plt.legend()
-	plt.title("Gaussian Process Prediction with 6th order Butterworth filtering,\nPredicting "
-		   +day+"day\nWith window of "+str(window)+"\nAnd 1 standard deviation")
-	plt.xlabel("Time (Hours)")
-	plt.ylabel(feature+" (predicted)")
-	plt.show()
-
-	sigma_coef *= 2
-	plt.plot(prediction_time, pred, "c-", label="GP Prediction")
-	plt.plot(prediction_time, compare, "y-", label="Validation data")
-	plt.fill(np.concatenate([prediction_time, prediction_time[::-1]]),
-			  np.concatenate([pred-sigma_coef*sigma,
-					 (pred+sigma_coef*sigma)[::-1]]),
-			  alpha=.5, fc='b', ec='none')
-	plt.legend()
-	plt.title("Gaussian Process Prediction with 6th order Butterworth filter,\nPredicting "
-		   +day+"day\nWith window of "+str(window)+"\nAnd two standard deviations")
-	plt.xlabel("Time (Hours)")
-	plt.ylabel(feature+" (predicted)")
-	plt.show()
-
-def plot_ridge(pred, compare, feature, day, window):
-	prediction_time= [p+1 for p in range(len(pred))]
-
-	plt.plot(prediction_time, pred, "c-", label="Ridge Regression Prediction")
-	plt.plot(prediction_time, compare, "y-", label="Actual data")
-	plt.legend()
-	plt.title("Ridge Regression Prediction with 6th order Butterworth filtering,\nPredicting "
-		   +day+"day\nWith window of "+str(window))
-	plt.xlabel("Time (hours)")
-	plt.ylabel(feature+" (predicted)")
-	plt.show()
-
 
 def mape_test(actual, estimated):
 	if( (type(actual) is np.ndarray) & (type(estimated) is np.ndarray)):
@@ -120,7 +79,7 @@ def mape_test(actual, estimated):
 	result = 0.0
 	for i in range(size):
 		result += np.abs( ( np.abs(actual[i]) - np.abs(estimated[i]))  / actual[i] )
-		#print("Test resul:", result)
+		#print("Test result:", result)
 	result /= size
 	return float(result)
 
@@ -265,7 +224,7 @@ if __name__ == '__main__':
 
 	ridge_mape_score = mape_test(Ycomp, ridge_y_pred) * 100
 	print("MAPE score for ridge: ", ridge_mape_score)
-	plot_ridge(ridge_y_pred, Ycomp, "Bits", day, str(window)+"\nand MAPE of "+str(ridge_mape_score))
+	pu.plot_ridge(ridge_y_pred, Ycomp, "Bits", day, str(window)+"\nand MAPE of "+str(ridge_mape_score))
 
 
 	#Declaration of the Gaussian Process Regressor with its kernel parameters
@@ -279,7 +238,7 @@ if __name__ == '__main__':
 	print("Chi-squared test against training data: ", gp.score(Xtr,Ytr))
 	y_self_pred, y_self_sigma = gp.predict(Xtr, return_std=True)
 	print("self_pred: ", y_self_pred.shape, " ycomp: ", Ytr.shape, " self_sigma: ", y_self_sigma.shape)
-	plot_gp(y_self_pred, y_self_sigma, np.array(Ytr), "Bits", day, str(window)+"\nMAPE: "+str(mape_test(Ytr, y_self_pred) * 100))
+	pu.plot_gp(y_self_pred, y_self_sigma, np.array(Ytr), "Bits", day, str(window)+"\nMAPE: "+str(mape_test(Ytr, y_self_pred) * 100))
 	#print(gp.get_params(deep=True))
 
 	if(validating):
@@ -288,7 +247,7 @@ if __name__ == '__main__':
 		print("Chi-squared against validation data: ", gp.score(Xvalid, Yvalid))
 		mape_valid_score = mape_test(Yvalid, y_valid_pred) * 100
 		print("MAPE between actual and validation: ", mape_valid_score)
-		plot_gp(y_valid_pred, y_valid_sigma, Yvalid, "Bits", day, str(window)+"\nMAPE: "+str(mape_valid_score))
+		pu.plot_gp(y_valid_pred, y_valid_sigma, Yvalid, "Bits", day, str(window)+"\nMAPE: "+str(mape_valid_score))
 
 
 	#Plotting prediction
@@ -297,9 +256,9 @@ if __name__ == '__main__':
 	print("Chi-squared test against real data: ", gp.score(Xtst,Ycomp))
 	mape_testing_score = mape_test(Ycomp, gp_y_pred) * 100
 	print("MAPE between acutal and estimated:", mape_testing_score)
-	plot_gp(gp_y_pred, gp_y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	pu.plot_gp(gp_y_pred, gp_y_sigma, Ycomp, "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
-	plot_gp(gp_y_pred[:400], gp_y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
+	pu.plot_gp(gp_y_pred[:400], gp_y_sigma[:400], Ycomp[:400], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 	#plot_gp(gp_y_pred[600:700], gp_y_sigma[600:700], Ycomp[600:700], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 	#plot_gp(gp_y_pred[800:], gp_y_sigma[800:], Ycomp[800:], "Bits", day, str(window)+"\nMAPE: "+str(mape_testing_score))
 
