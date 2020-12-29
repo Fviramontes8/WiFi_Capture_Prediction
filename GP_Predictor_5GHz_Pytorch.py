@@ -13,6 +13,8 @@ Depends on files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
 import SignalProcessor as sp
 # Private database processor
 import DatabaseProcessor as dbp
+# Private Ridge Regression functions
+import RidgeTesting as rt
 # Private GPyTorch and PyTorch functions
 import GPyTorchUtilities as gptu
 # Private plot functions
@@ -25,8 +27,7 @@ import numpy as np
 # For ploting data
 import matplotlib.pyplot as plt
 
-# Machine Learning package for Ridge regression
-from sklearn.linear_model import RidgeCV
+
 # Mean squared error to determine quality of prediction
 from sklearn.metrics import mean_squared_error as mse
 
@@ -94,7 +95,7 @@ if __name__ == "__main__":
 	test_week=15
 	total_weeks=13
 
-	#bits_tr = week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
+	#bits_tr = dbp.week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
 	bits_tr = dbp.day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
 	bits_title = "Training data of "+str(total_weeks)+" total weeks (mon-fri)"
 	bits_xtitle = "Time (10-minute chunks of multiple days)"
@@ -106,3 +107,28 @@ if __name__ == "__main__":
 	bits_title = "Normailzed t" + bits_title[1:]
 	bits_ytitle += " (normalized)"
 	pu.general_plot(bits_tr, bits_title, bits_xtitle, bits_ytitle)
+	
+	bits_tst = dbp.week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate, second_sample_rate)
+
+	plt.plot(bits_tst)
+	bits_title = "Testing data"
+	pu.general_plot(bits_tst, bits_title, bits_xtitle, bits_ytitle)
+
+	#Normalizing testing data
+	bits_tst = sp.std_normalization(bits_tst)
+	bits_title = "Normailzed t" + bits_title[1:]
+	bits_ytitle += " (normalized)"
+	pu.general_plot(bits_tst, bits_title, bits_xtitle, bits_ytitle)
+	
+	#Parameters for formatting training data
+	window = 5
+	validating = 0
+
+	#Transforming the input data so that it can be used in a regressor
+	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = tr_data_prep(bits_tr, bits_tst, window, validating)
+	
+	ridge_regressor = rt.simple_ridge(Xtr, Ytr, [1e1, 1e2, 1e3, 1e4, 1e5, 1e6], 12)
+	ridge_y_pred = ridge_regressor.predict(Xtst)
+	pu.plot_ridge_prediction(ridge_y_pred, Ycomp, day, window)
+	
+	

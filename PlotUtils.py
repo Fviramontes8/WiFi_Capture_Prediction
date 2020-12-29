@@ -89,3 +89,8 @@ def plot_ridge(pred, compare, feature, day, window):
 	plt.xlabel("Time (hours)")
 	plt.ylabel(feature+" (predicted)")
 	plt.show()
+	
+def plot_ridge_prediction(pred, ycomp, day, window):
+	ridge_mape_score = gptu.mape_test(ycomp, pred) * 100
+	print("MAPE score for ridge: ", ridge_mape_score)
+	plot_ridge(pred, ycomp, "Bits", day, str(window)+"\nand MAPE of "+str(ridge_mape_score))
