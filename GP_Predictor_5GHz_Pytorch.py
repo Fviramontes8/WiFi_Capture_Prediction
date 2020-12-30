@@ -131,4 +131,14 @@ if __name__ == "__main__":
 	ridge_y_pred = ridge_regressor.predict(Xtst)
 	pu.plot_ridge_prediction(ridge_y_pred, Ycomp, day, window)
 	
+	# Begin Pytorch training
+	Xtr_torch, Ytr_torch = torch.from_numpy(Xtr), torch.from_numpy(Ytr)
+	likelihood = gpytorch.likelihoods.GaussianLikelihood()
+	model = ExactGPModel(Xtr_torch, Ytr_torch, likelihood)
+	optimizer = torch.optim.Adam([
+			{"params" : model.parameters()},
+		],
+		lr = 0.1
+	)
+	gptu.TorchTrain(Xtr_torch, Ytr_torch, model, likelihood, optimizer, 100)
 	
