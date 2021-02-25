@@ -5,7 +5,7 @@ Created on Mon Dec 28 17:33:57 2020
 @author: Frankie
 """
 # Machine Learning package for Ridge regression
-from sklearn.linear_model import RidgeCV
+from sklearn.linear_model import Ridge, RidgeCV
 
 def cv_ridge(Xtr, Ytr, alphas, max_folds):
 	if max_folds < 3:
@@ -18,7 +18,10 @@ def cv_ridge(Xtr, Ytr, alphas, max_folds):
 	print_ridge_info(best_ridge_regressor, Xtr, Ytr)
 	return best_ridge_regressor
 
-def simple_ridge(Xtr, Ytr, alphas, folds):
+def simple_ridge(Xtr, Ytr, alpha):
+	return Ridge(alpha=alpha).fit(Xtr, Ytr)
+
+def simple_cv_ridge(Xtr, Ytr, alphas, folds=2):
 	return RidgeCV(alphas=alphas, cv=folds).fit(Xtr, Ytr)
 
 def print_ridge_info(regressor, Xtr, Ytr):
