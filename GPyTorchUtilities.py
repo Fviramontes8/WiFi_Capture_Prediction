@@ -26,19 +26,27 @@ def TorchTrain(Xtr, Ytr, GPModel, GPLikelihood, GPOptimizer, TrainingIter):
 		output = GPModel(Xtr)
 
 		loss = -marginal_log_likelihood(output, Ytr)
-		loss.backward()
+		# Must be loss.backward() if there is a single value for loss
+		# Otherwise should be loss.sum().backward() or loss.mean().backward() for multiple values for loss
+		#loss.sum().backward()
+		loss.mean().backward()
+		
+		print("Iter %02d/%d - Loss: %.3f\tnoise: %.3f" % (
+			i + 1, TrainingIter, loss.mean().item(),
+			GPModel.likelihood.noise.item()
+		))
+		
 
-		#print("Iter", i + 1, "/", TrainingIter)
 		GPOptimizer.step()
-
 	return GPModel, GPLikelihood
 
 def TorchTest(Xtst, GPModel, GPLikelihood):
 	GPModel.eval()
 	GPLikelihood.eval()
-
+	
 	with torch.no_grad(), gpytorch.settings.fast_pred_var():
-		observed_pred = GPLikelihood(GPModel(Xtst))
+		output = GPModel(Xtst)
+		observed_pred = GPLikelihood(output)
 
 	return observed_pred
 
@@ -79,16 +87,3 @@ def verify_confidence_region(YPred, YTrue):
 			sigma2_count += 1
 
 	return sigma1_count/len(YTrue), sigma2_count/len(YTrue)
-
-def mape_test(actual, estimated):
-	assert(type(actual) == np.ndarray)
-	assert(type(estimated) == np.ndarray)
-	"""
-	size = len(actual)
-	result = 0.0
-	for i in range(size):
-		result += np.abs( (actual[i] - estimated[i])  / actual[i] )
-	result /= size
-	"""
-	result = np.mean(np.abs((actual-estimated)/actual))
-	return float(result)
