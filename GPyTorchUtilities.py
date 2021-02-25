@@ -8,8 +8,6 @@ Created on Tue Dec 22 16:58:52 2020
 import torch
 import gpytorch
 
-import numpy as np
-import matplotlib.pyplot as plt
 
 def TorchTrain(Xtr, Ytr, GPModel, GPLikelihood, GPOptimizer, TrainingIter):
 	GPModel.train()
