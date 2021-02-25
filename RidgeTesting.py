@@ -18,10 +18,10 @@ def cv_ridge(Xtr, Ytr, alphas, max_folds):
 	print_ridge_info(best_ridge_regressor, Xtr, Ytr)
 	return best_ridge_regressor
 
-def simple_ridge(Xtr, Ytr, alpha):
+def linear_ridge(Xtr, Ytr, alpha):
 	return Ridge(alpha=alpha).fit(Xtr, Ytr)
 
-def simple_cv_ridge(Xtr, Ytr, alphas, folds=2):
+def linear_cv_ridge(Xtr, Ytr, alphas, folds=2):
 	return RidgeCV(alphas=alphas, cv=folds).fit(Xtr, Ytr)
 
 def print_ridge_info(regressor, Xtr, Ytr):
