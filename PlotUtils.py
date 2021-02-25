@@ -7,6 +7,9 @@ Created on Tue Dec 22 17:35:15 2020
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Private signal processor/sampler
+import SignalProcessor as sp
+
 # Graphs with PyTorch data
 import torch
 import GPyTorchUtilities as gptu
@@ -91,6 +94,6 @@ def plot_ridge(pred, compare, feature, day, window):
 	plt.show()
 	
 def plot_ridge_prediction(pred, ycomp, day, window):
-	ridge_mape_score = gptu.mape_test(ycomp, pred) * 100
+	ridge_mape_score = sp.mape_test(ycomp, pred)
 	print("MAPE score for ridge: ", ridge_mape_score)
 	plot_ridge(pred, ycomp, "Bits", day, str(window)+"\nand MAPE of "+str(ridge_mape_score))
