@@ -19,6 +19,8 @@ from scipy import signal
 #For ploting data
 import matplotlib.pyplot as plt
 
+from sklearn.model_selection import train_test_split
+
 def mean(values):
     '''Determines the mean of an array'''
     if len(values) > 0:
@@ -35,6 +37,19 @@ def variance(values):
 def std_dev(values):
 	'''Returns the standard deviation of an array-like input'''
 	return sqrt(variance(values))
+
+def mape_test(actual, estimated):
+	assert(type(actual) == np.ndarray)
+	assert(type(estimated) == np.ndarray)
+	"""
+	size = len(actual)
+	result = 0.0
+	for i in range(size):
+		result += np.abs( (actual[i] - estimated[i])  / actual[i] )
+	result /= size
+	"""
+	result = np.mean(np.abs((actual-estimated)/actual))
+	return float(result) * 100.0
 
 def std_normalization(values):
 	'''Normalizes an array by subtacting the mean and dividing by the standard deviation'''
@@ -81,6 +96,23 @@ def butterfilter(input_arr, title, day, freq=60):
 		plt.show()
 	return xf
 
+# x is the time series, n should be window
+def buffer(x, n, p=0):
+    # From https://stackoverflow.com/questions/38453249/is-there-a-matlabs-buffer-equivalent-in-numpy
+    i = 0
+    result = x[:n]
+    i = n
+    result = list(np.expand_dims(result, axis=0))
+    while i < len(x):
+        col = x[i:i+(n-p)]
+        if p != 0:
+            col = np.hstack([result[-1][-p:], col])
+        if len(col):
+            col = np.hstack([col, np.zeros(n - len(col))])
+        result.append(np.array(col))
+        i += (n - p)
+    return np.vstack(result).T
+
 def sub_sample(xf, title, day, sampling=60):
 	'''
 	Input:
@@ -126,6 +158,32 @@ def avg_sample(sample_arr, sample_size):
             sample_return.append(int(mean(m)))
             break
     return np.atleast_1d(sample_return)
+
+def tr_data_prep(training, testing, window, validating=0):
+	'''Inputs: train/test, which needs to be an array and each can be a different size, window,
+		which specifies how wide the resultant matrix of this function is.
+	Output: Training and test matricies that has window of the given input values (Xtr, Ytr, Xtst),
+		and a graph-able array of what the training values look like (ycomp)
+	Example: window = 5, length of array input (both train and test are same size in this example) = n
+		[x_0 x_1 ... x_4]          [x_5]
+		[x_1 x_2 ... x_5]          [x_6]
+	x = [x_2 x_3 ... x_6]     y =  [x_7]
+		[... ... ... ...]          [...]
+		[x_n-5-1... ... x_n-1]     [x_n]
+	'''
+	x_valid = np.ones((2, 2))
+	y_valid = np.ones((2, 2))
+	if(validating):
+		training, validation = train_test_split(training, test_size = 0.2)
+		x_valid = np.atleast_2d([grab_nz(validation, m, n) for m, n in zip(range(validation.shape[0]), range(window, validation.shape[0]))])
+		y_valid = np.atleast_2d([[validation[i] for i in range(window, validation.shape[0])]]).T
+
+	Xtr = np.atleast_2d([grab_nz(training, m, n) for m, n in zip(range(training.shape[0]), range(window, training.shape[0]))])
+	Ytr = np.atleast_2d([[training[i] for i in range(window, training.shape[0])]]).T
+	Xtst = np.atleast_2d([grab_nz(testing, m, n) for m, n in zip(range(testing.shape[0]), range(window, testing.shape[0]))])
+	Ycomp = np.atleast_2d([testing[i] for i in range(window, testing.shape[0])]).T
+
+	return Xtr, Ytr, Xtst, Ycomp, x_valid, y_valid
 
 def savgol(input_arr, title):
 	'''
