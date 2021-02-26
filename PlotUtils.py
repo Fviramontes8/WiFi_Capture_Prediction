@@ -87,13 +87,13 @@ def plot_ridge(pred, compare, feature, day, window):
 	plt.plot(prediction_time, pred, "c-", label="Ridge Regression Prediction")
 	plt.plot(prediction_time, compare, "y-", label="Actual data")
 	plt.legend()
-	plt.title("Ridge Regression Prediction with 6th order Butterworth filtering,\nPredicting "
-		   +day+"day\nWith window of "+str(window))
+	plt.title("Ridge Regression Prediction with 6th order Butterworth filtering,\nPredicting a "
+		   +day+"\nWith window of "+str(window))
 	plt.xlabel("Time (hours)")
 	plt.ylabel(feature+" (predicted)")
 	plt.show()
 	
 def plot_ridge_prediction(pred, ycomp, day, window):
 	ridge_mape_score = sp.mape_test(ycomp, pred)
-	print("MAPE score for ridge: ", ridge_mape_score)
+	#print("MAPE score for ridge: ", ridge_mape_score)
 	plot_ridge(pred, ycomp, "Bits", day, str(window)+"\nand MAPE of "+str(ridge_mape_score))
