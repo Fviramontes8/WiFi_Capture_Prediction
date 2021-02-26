@@ -15,7 +15,7 @@ def cv_ridge(Xtr, Ytr, alphas, max_folds):
 		best_ridge_regressor = RidgeCV(alphas=alphas, cv=cvs).fit(Xtr, Ytr)
 		print("Best alpha for ", cvs, " folds: ", best_ridge_regressor.alpha_)
 		
-	print_ridge_info(best_ridge_regressor, Xtr, Ytr)
+	print_ridgecv_info(best_ridge_regressor, Xtr, Ytr)
 	return best_ridge_regressor
 
 def linear_ridge(Xtr, Ytr, alpha):
@@ -24,6 +24,10 @@ def linear_ridge(Xtr, Ytr, alpha):
 def linear_cv_ridge(Xtr, Ytr, alphas, folds=2):
 	return RidgeCV(alphas=alphas, cv=folds).fit(Xtr, Ytr)
 
-def print_ridge_info(regressor, Xtr, Ytr):
+def print_ridgecv_info(regressor, Xtr, Ytr):
 	print("Ridge regresson best params: ", regressor.alpha_)
 	print("Chi-squared test against training data: ", regressor.score(Xtr, Ytr))
+	
+def print_ridge_info(regressor, Xtr, Ytr, Xtst, Ytst):
+	print("Chi-squared test against training data: ", regressor.score(Xtr, Ytr))
+	print("Chi-squared test against testing data: ", regressor.score(Xtst, Ytst))
