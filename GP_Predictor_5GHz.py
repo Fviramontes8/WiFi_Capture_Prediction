@@ -66,7 +66,7 @@ if __name__ == '__main__':
 	gp_y_pred, gp_y_sigma = gp.predict(Xtst, return_std=True)
 	mape_testing_score = sp.mape_test(Ytst, gp_y_pred)
 	window_title = str(window)+"\nMAPE: "+str(mape_testing_score)
-	pu.plot_gp(gp_y_pred, gp_y_sigma, Ytst, "Bits", test_day, window_title)
+	pu.plot_gp(gp_y_pred, gp_y_sigma, Ytst, "Time (Hours)", "Bits", test_day, window_title)
 	
 	print("Chi-squared test against real data: ", gp.score(Xtst,Ytst))
 	print("MAPE between acutal and estimated:", mape_testing_score)
