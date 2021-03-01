@@ -29,7 +29,7 @@ def TorchTrain(Xtr, Ytr, GPModel, GPLikelihood, GPOptimizer, TrainingIter):
 		#loss.sum().backward()
 		loss.mean().backward()
 		
-		print("Iter %02d/%d - Loss: %.3f\tnoise: %.3f" % (
+		print("Iter %03d/%03d - Loss: %.3f\tnoise: %.3f" % (
 			i + 1, TrainingIter, loss.mean().item(),
 			GPModel.likelihood.noise.item()
 		))
