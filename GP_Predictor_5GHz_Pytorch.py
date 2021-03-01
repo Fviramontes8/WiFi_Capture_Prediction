@@ -56,9 +56,9 @@ if __name__ == "__main__":
 	#Xtr = bits_train[0, :]
 	Ytr = bits_train[window, :]
 	bits_test = sp.buffer(bits_test, window+1, window)
+	print(bits_test.shape)
 	Xtst = bits_test[:window, :]
 	Ytst = bits_test[window, :]
-	print(Xtst.shape)
 	
 	# Begin Pytorch training
 	# Need to cast dtype as torch.double (or torch.float64)
@@ -84,3 +84,11 @@ if __name__ == "__main__":
 	torch_pred = gptu.TorchTest(Xtst_torch, model, likelihood)
 	print("Prediction shape:", torch_pred.mean.shape)
 	
+	# Setting up data to print the predition results
+	time_train = torch.Tensor([i for i in range(Ytr.shape[0])])
+	time_test = torch.Tensor([i for i in range(Ytst.shape[0])])
+	
+	gp_title = "Linear GP Prediction\nwith 1 standard deviation\nand 2 standard deviations"
+	x_title = "Time (hours)"
+	y_title = "Bits"
+	pu.PlotGPPred(time_test, torch.Tensor(Ytst), time_test, torch_pred, x_title, y_title, gp_title)
