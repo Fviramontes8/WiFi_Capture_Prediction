@@ -40,21 +40,6 @@ class ExactGPModel(gpytorch.models.ExactGP):
 		mean_x = self.mean_module(x)
 		covar_x = self.covar_module(x)
 		return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
-	
-class BatchGPModel(gpytorch.models.ExactGP):
-	def __init__(self, train_x, train_y, likelihood, batch_size):
-		super(BatchGPModel, self).__init__(train_x, train_y, likelihood)
-		self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([batch_size]))
-		self.covar_module = gpytorch.kernels.ScaleKernel(
-			gpytorch.kernels.MaternKernel(batch_shape=torch.Size([batch_size])),
-			batch_shape=torch.Size([batch_size])
-		)
-
-	def forward(self, x):
-		mean_x = self.mean_module(x)
-		covar_x = self.covar_module(x)
-		return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
-
 
 if __name__ == "__main__":
 	test_day = "Monday"
@@ -83,9 +68,6 @@ if __name__ == "__main__":
 	
 	likelihood = gpytorch.likelihoods.GaussianLikelihood()
 	model = ExactGPModel(Xtr_torch, Ytr_torch, likelihood)
-	
-	#batch_likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_shape=torch.Size([Xtr_torch.shape[0]]))
-	#batch_model = BatchGPModel(Xtr_torch, Ytr_torch, batch_likelihood, Xtr_torch.shape[0])
 	
 	optimizer = torch.optim.Adam([
 			{"params" : model.parameters()},
