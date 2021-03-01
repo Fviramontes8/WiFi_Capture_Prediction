@@ -23,7 +23,7 @@ if __name__ == "__main__":
 	print("Total training data points:", len(bits_train))
 	print("Total testing data points:", len(bits_test), '\n')
 	#Parameters for formatting training data
-	window = 10
+	window = 3
 
 	bits_train = sp.buffer(bits_train, window+1, window)
 	Xtr = bits_train[:window, :]
