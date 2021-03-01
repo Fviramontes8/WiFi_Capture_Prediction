@@ -6,15 +6,13 @@ Packages needed: scikit-learn, psycopg2, numpy, scipy, pytorch
 From: https://github.com/fviramontes8/Wifi_Capture_Prediction
 Depends on files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
 """
-# TODO: Run code with MAPE function, set up a loop for different parameters
+# TODO: 
+#	Try batch GP
+#	Run code with MAPE function, set up a loop for different parameters
 #    (and differnt cv folds) to find best ridge model.
 
 # Private signal processor/sampler
 import SignalProcessor as sp
-# Private database processor
-import DatabaseProcessor as dbp
-# Private Ridge Regression functions
-import RidgeTesting as rt
 # Private GPyTorch and PyTorch functions
 import GPyTorchUtilities as gptu
 # Private plot functions
@@ -24,19 +22,11 @@ import PlotUtils as pu
 import numpy as np
 #np.set_printoptions(threshold=np.nan)
 
-# For ploting data
-import matplotlib.pyplot as plt
-
-
 # Mean squared error to determine quality of prediction
 from sklearn.metrics import mean_squared_error as mse
 
-from sklearn.model_selection import train_test_split
-
 import torch
 import gpytorch
-
-import os
 
 class ExactGPModel(gpytorch.models.ExactGP):
 	def __init__(self, train_x, train_y, likelihood):
@@ -50,95 +40,65 @@ class ExactGPModel(gpytorch.models.ExactGP):
 		mean_x = self.mean_module(x)
 		covar_x = self.covar_module(x)
 		return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+	
+class BatchGPModel(gpytorch.models.ExactGP):
+	def __init__(self, train_x, train_y, likelihood, batch_size):
+		super(BatchGPModel, self).__init__(train_x, train_y, likelihood)
+		self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([batch_size]))
+		self.covar_module = gpytorch.kernels.ScaleKernel(
+			gpytorch.kernels.MaternKernel(batch_shape=torch.Size([batch_size])),
+			batch_shape=torch.Size([batch_size])
+		)
 
-def tr_data_prep(training, testing, window, validating=0):
-	'''Inputs: train/test, which needs to be an array and each can be a different size, window,
-		which specifies how wide the resultant matrix of this function is.
-	Output: Training and test matricies that has window of the given input values (Xtr, Ytr, Xtst),
-		and a graph-able array of what the training values look like (ycomp)
-	Example: window = 5, length of array input (both train and test are same size in this example) = n
-		[x_0 x_1 ... x_4]          [x_5]
-		[x_1 x_2 ... x_5]          [x_6]
-	x = [x_2 x_3 ... x_6]     y =  [x_7]
-		[... ... ... ...]          [...]
-		[x_n-5-1... ... x_n-1]     [x_n]
-	'''
-	x_valid = np.ones((2, 2))
-	y_valid = np.ones((2, 2))
-	if(validating):
-		training, validation = train_test_split(training, test_size = 0.2)
-		x_valid = np.atleast_2d([sp.grab_nz(validation, m, n) for m, n in zip(range(validation.shape[0]), range(window, validation.shape[0]))])
-		y_valid = np.atleast_2d([[validation[i] for i in range(window, validation.shape[0])]]).T
+	def forward(self, x):
+		mean_x = self.mean_module(x)
+		covar_x = self.covar_module(x)
+		return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
-	Xtr = np.atleast_2d([sp.grab_nz(training, m, n) for m, n in zip(range(training.shape[0]), range(window, training.shape[0]))])
-	Ytr = np.atleast_2d([[training[i] for i in range(window, training.shape[0])]]).T
-	Xtst = np.atleast_2d([sp.grab_nz(testing, m, n) for m, n in zip(range(testing.shape[0]), range(window, testing.shape[0]))])
-	Ycomp = np.atleast_2d([testing[i] for i in range(window, testing.shape[0])]).T
-
-	return Xtr, Ytr, Xtst, Ycomp, x_valid, y_valid
 
 if __name__ == "__main__":
-	days_of_week = ["mon",
-				 "tues",
-				 "wed",
-				 "thurs",
-				 "fri"
-				 ]
-	day = "thurs"
-	labels_5ghz = ["Number of users",
-       				"Bits"
-       				]
-	begin_week = 2
-	end_week = 14
-	init_sample_rate = 60
-	second_sample_rate = 30
-	test_week=15
-	total_weeks=13
-
-	#bits_tr = dbp.week_data_prep(day, begin_week, end_week, init_sample_rate, second_sample_rate)
-	bits_tr = dbp.day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
-	bits_title = "Training data of "+str(total_weeks)+" total weeks (mon-fri)"
-	bits_xtitle = "Time (10-minute chunks of multiple days)"
-	bits_ytitle = "Bits"
-	pu.general_plot(bits_tr, bits_title, bits_xtitle, bits_ytitle)
-	
-	#Normalizing training data
-	bits_tr = sp.std_normalization(bits_tr)
-	bits_title = "Normailzed t" + bits_title[1:]
-	bits_ytitle += " (normalized)"
-	pu.general_plot(bits_tr, bits_title, bits_xtitle, bits_ytitle)
-	
-	bits_tst = dbp.week_data_prep(days_of_week[0], test_week, test_week, init_sample_rate, second_sample_rate)
-
-	plt.plot(bits_tst)
-	bits_title = "Testing data"
-	pu.general_plot(bits_tst, bits_title, bits_xtitle, bits_ytitle)
-
-	#Normalizing testing data
-	bits_tst = sp.std_normalization(bits_tst)
-	bits_title = "Normailzed t" + bits_title[1:]
-	bits_ytitle += " (normalized)"
-	pu.general_plot(bits_tst, bits_title, bits_xtitle, bits_ytitle)
-	
+	test_day = "Monday"
+	bits_train = np.load("data/tr_bits_15weeks_hoursample_normalized.npy")
+	bits_test = np.load("data/tst_bits_week15mon_hoursample_normalized.npy")
+	print(len(bits_train))
+	print(len(bits_test))
 	#Parameters for formatting training data
-	window = 5
-	validating = 0
+	window = 3
 
-	#Transforming the input data so that it can be used in a regressor
-	Xtr, Ytr, Xtst, Ycomp, Xvalid, Yvalid = tr_data_prep(bits_tr, bits_tst, window, validating)
-	
-	ridge_regressor = rt.simple_ridge(Xtr, Ytr, [1e1, 1e2, 1e3, 1e4, 1e5, 1e6], 12)
-	ridge_y_pred = ridge_regressor.predict(Xtst)
-	pu.plot_ridge_prediction(ridge_y_pred, Ycomp, day, window)
+	bits_train = sp.buffer(bits_train, window+1, window)
+	print(bits_train.shape)
+	Xtr = bits_train[:window, :]
+	#Xtr = bits_train[0, :]
+	Ytr = bits_train[window, :]
+	bits_test = sp.buffer(bits_test, window+1, window)
+	Xtst = bits_test[:window, :]
+	Ytst = bits_test[window, :]
+	print(Xtst.shape)
 	
 	# Begin Pytorch training
-	Xtr_torch, Ytr_torch = torch.from_numpy(Xtr), torch.from_numpy(Ytr)
+	# Need to cast dtype as torch.double (or torch.float64)
+	Xtr_torch, Ytr_torch = torch.from_numpy(Xtr).float(), torch.from_numpy(Ytr).float()
+	Xtr_torch = Xtr_torch.transpose(0, 1)
+	print("Xtr shape:", Xtr_torch.shape, "Ytr shape:", Ytr_torch.shape)
+	
 	likelihood = gpytorch.likelihoods.GaussianLikelihood()
 	model = ExactGPModel(Xtr_torch, Ytr_torch, likelihood)
+	
+	#batch_likelihood = gpytorch.likelihoods.GaussianLikelihood(batch_shape=torch.Size([Xtr_torch.shape[0]]))
+	#batch_model = BatchGPModel(Xtr_torch, Ytr_torch, batch_likelihood, Xtr_torch.shape[0])
+	
 	optimizer = torch.optim.Adam([
 			{"params" : model.parameters()},
 		],
 		lr = 0.1
 	)
+	
 	gptu.TorchTrain(Xtr_torch, Ytr_torch, model, likelihood, optimizer, 100)
+	
+	Xtst_torch = torch.from_numpy(Xtst).float()
+	Xtst_torch = Xtst_torch.transpose(0, 1)
+	print("Xtst shape:", Xtst_torch.shape, "Ytst shape:", Ytst.shape)
+	
+	torch_pred = gptu.TorchTest(Xtst_torch, model, likelihood)
+	print("Prediction shape:", torch_pred.mean.shape)
 	
