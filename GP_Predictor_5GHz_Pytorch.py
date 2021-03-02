@@ -85,10 +85,22 @@ if __name__ == "__main__":
 	print("Prediction shape:", torch_pred.mean.shape)
 	
 	# Setting up data to print the predition results
-	time_train = torch.Tensor([i for i in range(Ytr.shape[0])])
 	time_test = torch.Tensor([i for i in range(Ytst.shape[0])])
 	
 	gp_title = "Linear GP Prediction\nwith 1 standard deviation\nand 2 standard deviations"
 	x_title = "Time (hours)"
 	y_title = "Bits"
 	pu.PlotGPPred(time_test, torch.Tensor(Ytst), time_test, torch_pred, x_title, y_title, gp_title)
+	
+	torch_gp_mape = sp.mape_test(Ytst, torch_pred.mean.numpy())
+	print("Torch mape:", torch_gp_mape)
+	torch_gp_mse = mse(Ytst, torch_pred.mean.numpy())
+	print("Torch GP MSE:", torch_gp_mse)
+	
+	
+	lower_sigma2, upper_sigma2 = torch_pred.confidence_region()
+	lower_sigma1, upper_sigma1 = gptu.ToStdDev1(torch_pred)
+	
+	one_sigma, two_sigma = gptu.verify_confidence_region(torch_pred, torch.Tensor(Ytst))
+	print(one_sigma,"is contained within 1 standard deviation")
+	print(two_sigma, "is contained within 2 standard deviations")
