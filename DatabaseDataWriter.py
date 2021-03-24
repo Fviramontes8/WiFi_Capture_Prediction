@@ -33,25 +33,25 @@ if __name__ == "__main__":
 	second_sample_rate = 60
 	test_day = days_of_week[0]
 	test_week=15
-	total_weeks=5
+	total_weeks=15
 	
 	# Needs to be called for a new batch of data
-	if not path.exists(data_folder+"tr_bits_"+str(total_weeks)+"weeks_hoursample.npy"):
+	if not path.exists(data_folder+"tr_bits_"+str(total_weeks)+"weeks_10minutesample.npy"):
 		bits = dbp.day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
-		print(len(bits))
-		np.save(data_folder+"tr_bits_"+str(total_weeks)+"weeks_hoursample", bits)
+		print("Total training bits:", len(bits))
+		np.save(data_folder+"tr_bits_"+str(total_weeks)+"weeks_10minutesample", bits)
 		bits = sp.std_normalization(bits)
-		np.save(data_folder+"tr_bits_"+str(total_weeks)+"weeks_hoursample_normalized", bits)
+		np.save(data_folder+"tr_bits_"+str(total_weeks)+"weeks_10minutesample_normalized", bits)
 		
 		bits_title = str(total_weeks)+" weeks of bits"
-		bits_xtitle = "Time (seconds)"
+		bits_xtitle = "Time (half-hours)"
 		bits_ytitle = "Bits"
 		pu.general_plot(bits, bits_title, bits_xtitle, bits_ytitle)
 	
 	
 	if not path.exists(data_folder+"tst_bits_week"+str(test_week)+str(test_day)+"_hoursample.npy"):
 		Xtst = dbp.week_data_prep(test_day, test_week, test_week, init_sample_rate, second_sample_rate)
-		np.save(data_folder+"tst_bits_week"+str(test_week)+str(test_day)+"_hoursample", bits)
-		print(len(Xtst))
+		np.save(data_folder+"tst_bits_week"+str(test_week)+str(test_day)+"_hoursample", Xtst)
+		print("Total testing bits:", len(Xtst))
 		Xtst = sp.std_normalization(Xtst)
 		np.save(data_folder+"tst_bits_week"+str(test_week)+str(test_day)+"_hoursample_normalized", Xtst)
