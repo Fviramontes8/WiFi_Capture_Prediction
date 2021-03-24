@@ -43,9 +43,19 @@ def PlotGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title="")
 		ax.set_ylabel(Ytitle)
 		ax.set_title(Title)
 		ax.legend(["Observed Data", "Prediction Mean", "2 StdDev Confidence", "1 StdDev Confidence"])
+		plt.show()
 		
 def general_plot(data, title, xtitle, ytitle):
 	plt.plot(data)
+	plt.title(title)
+	plt.xlabel(xtitle)
+	plt.ylabel(ytitle)
+	plt.show()
+	
+def general_double_plot(data1, data2, title, xtitle, ytitle):
+	assert(len(data1) == len(data2))
+	plt.plot(data1)
+	plt.plot(data2)
 	plt.title(title)
 	plt.xlabel(xtitle)
 	plt.ylabel(ytitle)
