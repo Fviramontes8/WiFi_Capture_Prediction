@@ -51,7 +51,7 @@ def mape_test(actual, estimated):
 	result = np.mean(np.abs((actual-estimated)/actual))
 	return float(result) * 100.0
 
-def std_normalization(values):
+def std_normalization(values, verbose=0):
 	'''Normalizes an array by subtacting the mean and dividing by the standard deviation'''
 	mu = mean(values)
 	sigma = std_dev(values)
@@ -59,8 +59,19 @@ def std_normalization(values):
 	normalized_values = values[:]
 	for i in range(len(normalized_values)):
 		normalized_values[i] = (normalized_values[i] - mu) / sigma
-
-	return normalized_values
+	
+	if verbose:
+		return normalized_values, mu, sigma
+	else:
+		return normalized_values
+	
+def denormalize(values, mu, sigma):
+	original_values = values
+	for i in range(len(values)):
+		original_values[i] = (original_values[i] * sigma) + mu
+	
+	return original_values
+		
 
 def grab_nz(array, n ,z):
 	'''Gets the first n to z values of an array, returns error if n is greater
