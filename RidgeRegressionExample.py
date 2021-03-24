@@ -56,5 +56,6 @@ if __name__ == "__main__":
 	
 	print("Mean squared error from test data prediction:", mse(ridge_test_y, ridge_y_pred))
 	print("Mean squared error from training data prediction:", mse(ridge_train_y, ridge_self_pred))
+	print("Ridge regression mape:", sp.mape_test(ridge_test_y, ridge_y_pred))
 	
 	ru.print_ridge_info(ridge_regressor, ridge_train_x, ridge_train_y, ridge_test_x, ridge_test_y)
