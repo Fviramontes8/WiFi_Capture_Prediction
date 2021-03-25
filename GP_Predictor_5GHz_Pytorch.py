@@ -110,3 +110,22 @@ if __name__ == "__main__":
 	xtitle = "Time (hours)"
 	ytitle = "Denormalized bits"
 	pu.general_double_plot(y_tst_denorm, t_pred_denorm, title, xtitle, ytitle)
+	
+	# Lower the better
+	torch_gp_mape = sp.mape_test(y_tst_denorm, t_pred_denorm)
+	print("Torch mape:", torch_gp_mape)
+	
+	# Lower the better
+	torch_gp_mse = mse(y_tst_denorm, t_pred_denorm)
+	print("Torch GP MSE:", torch_gp_mse)
+	
+	# Lower the better
+	torch_gp_mae = mae(y_tst_denorm, t_pred_denorm)
+	print("Torch mae:", torch_gp_mae)
+	
+	torch_gp_r_sq = r2_score(y_tst_denorm, t_pred_denorm)
+	print("Torch r^2 value:", torch_gp_r_sq)
+	
+	torch_gp_ttest = ttest_ind(y_tst_denorm, t_pred_denorm)
+	print("Torch ttest value:", torch_gp_ttest[0])
+	print("Torch ttest p-value:", torch_gp_ttest[1])
