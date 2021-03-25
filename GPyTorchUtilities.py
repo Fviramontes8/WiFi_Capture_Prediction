@@ -34,6 +34,7 @@ def TorchTrain(Xtr, Ytr, GPModel, GPLikelihood, GPOptimizer, TrainingIter):
 			GPModel.likelihood.noise.item()
 		))
 		
+		
 
 		GPOptimizer.step()
 	return GPModel, GPLikelihood
@@ -68,7 +69,7 @@ YTrue should be a numpy array
 def verify_confidence_region(YPred, YTrue):
 	y_pred_mean = YPred.mean.numpy()
 	y_true = YTrue.numpy()
-	assert (len(y_pred_mean) == len(YTrue))
+	assert (len(y_pred_mean) == len(y_true))
 
 	y_lower_sigma, y_upper_sigma = YPred.confidence_region()
 	y_lower_sigma1, y_upper_sigma1 = ToStdDev1(YPred)
