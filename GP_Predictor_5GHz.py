@@ -33,8 +33,8 @@ import PlotUtils as pu
 
 if __name__ == '__main__':
 	test_day = "Monday"
-	bits_train = np.load("data/tr_bits_15weeks_hoursample_normalized.npy")
-	bits_test = np.load("data/tst_bits_week15mon_hoursample_normalized.npy")
+	bits_train = np.load("data/tr_bits_15weeks_halfhoursample.npy")
+	bits_test = np.load("data/tst_bits_week15mon_halfhoursample.npy")
 	print(len(bits_train))
 	print(len(bits_test))
 	#Parameters for formatting training data
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 	gp_y_pred, gp_y_sigma = gp.predict(Xtst, return_std=True)
 	mape_testing_score = sp.mape_test(Ytst, gp_y_pred)
 	window_title = str(window)+"\nMAPE: "+str(mape_testing_score)
-	pu.plot_gp(gp_y_pred, gp_y_sigma, Ytst, "Time (Hours)", "Bits", test_day, window_title)
+	pu.plot_gp(gp_y_pred, gp_y_sigma, Ytst, "Time (Halfhours)", "Bits", test_day, window_title)
 	
 	print("Chi-squared test against real data: ", gp.score(Xtst,Ytst))
 	print("MAPE between acutal and estimated:", mape_testing_score)
