@@ -11,7 +11,7 @@ From: https://github.com/fviramontes8/Wifi_Capture_Prediction
 #For matrix and linear algebra calcualtions
 import numpy as np
 
-from math import sqrt
+from math import sqrt, ceil
 
 #For use of the butterworth and Savgol filters
 from scipy import signal
@@ -66,7 +66,7 @@ def std_normalization(values, verbose=0):
 		return normalized_values
 	
 def denormalize(values, mu, sigma):
-	original_values = values
+	original_values = values.copy()
 	for i in range(len(values)):
 		original_values[i] = (original_values[i] * sigma) + mu
 	
@@ -123,6 +123,14 @@ def buffer(x, n, p=0):
         result.append(np.array(col))
         i += (n - p)
     return np.vstack(result).T
+
+def buffer2(data,duration,dataOverlap):
+    numberOfSegments = int(ceil((len(data)-dataOverlap)/(duration-dataOverlap)))
+    #print(data.shape)
+    tempBuf = [data[i:i+duration] for i in range(0,len(data),(duration-int(dataOverlap)))]
+    tempBuf[numberOfSegments-1] = np.pad(tempBuf[numberOfSegments-1],(0,duration-tempBuf[numberOfSegments-1].shape[0]),'constant')
+    tempBuf2 = np.vstack(tempBuf[0:numberOfSegments])
+    return tempBuf2
 
 def sub_sample(xf, title, day, sampling=60):
 	'''
