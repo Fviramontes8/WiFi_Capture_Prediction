@@ -103,9 +103,9 @@ if __name__ == "__main__":
 	print(one_sigma,"is contained within 1 standard deviation")
 	print(two_sigma, "is contained within 2 standard deviations\n")
 	
-	# Apply denormalization for all test metrics
-	y_tst_denorm = sp.denormalize(Ytst, tst_mu, tst_sig)
-	t_pred_denorm = sp.denormalize(torch_pred.mean.numpy(), tst_mu, tst_sig)
+	
+	y_tst_denorm = sp.denormalize(Ytst, tr_mu, tr_sig)
+	t_pred_denorm = sp.denormalize(torch_pred.mean.numpy(), tr_mu, tr_sig)
 	title = "Comparison of denormalized data"
 	xtitle = "Time (hours)"
 	ytitle = "Denormalized bits"
@@ -129,3 +129,23 @@ if __name__ == "__main__":
 	torch_gp_ttest = ttest_ind(y_tst_denorm, t_pred_denorm)
 	print("Torch ttest value:", torch_gp_ttest[0])
 	print("Torch ttest p-value:", torch_gp_ttest[1])
+	
+	print("-"*40)
+	
+	# Normalized
+	mape_normalized = sp.mape_test(Ytst, torch_pred.mean.numpy())
+	print("Torch mape:", mape_normalized)
+	
+	mse_normalized = mse(Ytst, torch_pred.mean.numpy())
+	print("Torch GP MSE:", mse_normalized)
+	
+	mae_normalized = mae(Ytst, torch_pred.mean.numpy())
+	print("Torch mae:", mae_normalized)
+	
+	r_sq_normalized = r2_score(Ytst, torch_pred.mean.numpy())
+	print("Torch r^2 value:", r_sq_normalized)
+	
+	ttest_normalized = ttest_ind(Ytst, torch_pred.mean.numpy())
+	print("Torch ttest value:", ttest_normalized[0])
+	print("Torch ttest p-value:", ttest_normalized[1])
+	
