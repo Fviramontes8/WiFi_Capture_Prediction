@@ -7,7 +7,7 @@ Packages needed: scikit-learn, psycopg2, numpy, scipy
 
 @author: frankie
 From: https://github.com/fviramontes8/Wifi_Capture_Prediction
-Depends on file: Signal Processor.py
+Depends on file: Signal Processor.py, DatabaseConnector.py
 """
 
 #Package to interface with AWS database
@@ -69,7 +69,7 @@ def read_5ghz_day(table_name):
 					]
 	return return_data
 
-def week_data_prep(day, start_week, end_week, sample_rate, sample_rate2=None):
+def week_bits_prep(day, start_week, end_week, sample_rate, sample_rate2=None):
 	training_data = []
 	labels_5ghz = ["Number of users",
        				"Bits"
@@ -90,7 +90,7 @@ def week_data_prep(day, start_week, end_week, sample_rate, sample_rate2=None):
 	training_data = np.array(training_data)
 	return training_data
 
-def day_data_prep(days_of_week, num_of_weeks, sample_rate, sample_rate2=None):
+def day_bits_prep(days_of_week, num_of_weeks, sample_rate, sample_rate2=None):
 	training_data = []
 	labels_5ghz = ["Number of users",
        				"Bits"

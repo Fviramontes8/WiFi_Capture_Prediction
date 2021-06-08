@@ -37,7 +37,7 @@ if __name__ == "__main__":
 	
 	# Needs to be called for a new batch of data
 	if not path.exists(data_folder+"tr_bits_"+str(total_weeks)+"weeks_10minutesample.npy"):
-		bits = dbp.day_data_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
+		bits = dbp.day_bits_prep(days_of_week, total_weeks, init_sample_rate, second_sample_rate)
 		print("Total training bits:", len(bits))
 		np.save(data_folder+"tr_bits_"+str(total_weeks)+"weeks_10minutesample", bits)
 		bits = sp.std_normalization(bits)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 	
 	
 	if not path.exists(data_folder+"tst_bits_week"+str(test_week)+str(test_day)+"_hoursample.npy"):
-		Xtst = dbp.week_data_prep(test_day, test_week, test_week, init_sample_rate, second_sample_rate)
+		Xtst = dbp.week_bits_prep(test_day, test_week, test_week, init_sample_rate, second_sample_rate)
 		np.save(data_folder+"tst_bits_week"+str(test_week)+str(test_day)+"_hoursample", Xtst)
 		print("Total testing bits:", len(Xtst))
 		Xtst = sp.std_normalization(Xtst)
