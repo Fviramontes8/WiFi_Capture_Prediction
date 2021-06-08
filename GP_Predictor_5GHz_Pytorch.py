@@ -6,8 +6,6 @@ Packages needed: scikit-learn, psycopg2, numpy, scipy, pytorch
 From: https://github.com/fviramontes8/Wifi_Capture_Prediction
 Depends on files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
 """
-# TODO: 
-#	Try r-squared, mean absolute error, and student T
 
 # Private signal processor/sampler
 import SignalProcessor as sp
