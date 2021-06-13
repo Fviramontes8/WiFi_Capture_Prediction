@@ -43,9 +43,9 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
 if __name__ == "__main__":
 	test_day = "Monday"
-	bits_train_raw = np.load("data/tr_bits_15weeks_hoursample.npy")
+	bits_train_raw = np.load("sample_data/tr_bits_15weeks_hoursample.npy")
 	bits_train, tr_mu, tr_sig = sp.std_normalization(bits_train_raw, 1)
-	bits_test_raw = np.load("data/tst_bits_week15mon_hoursample.npy")
+	bits_test_raw = np.load("sample_data/tst_bits_week15mon_hoursample.npy")
 	bits_test, tst_mu, tst_sig = sp.std_normalization(bits_test_raw, 1)
 	print(len(bits_train))
 	print(len(bits_test))
