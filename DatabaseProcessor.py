@@ -110,3 +110,58 @@ def day_bits_prep(days_of_week, num_of_weeks, sample_rate, sample_rate2=None):
 
 	training_data = np.array(training_data)
 	return training_data
+
+'''
+(Key, ts, nou, bits, pkt_num,
+		sigs, dr, phya, phyn)
+'''
+def select_feature(feature_name):
+	assert(type(feature_name) == str)
+	feature_str = feature_name.lower()
+	if (feature_str == "timestamp") | (feature_str == "ts"):
+		return 1
+	elif (feature_str == "nou") | (feature_str == "num_users"):
+		return 2
+	elif feature_str == "bits":
+		return 3
+	elif (feature_str == "pkt_num") | (feature_str == "packet_number"):
+		return 4
+	elif (feature_str == "sigs") | (feature_str == "signal_strength"):
+		return 5
+	elif (feature_str == "dr") | (feature_str == "data_rate"):
+		return 6
+	elif feature_str == "phya":
+		return 7
+	elif feature_str == "phyn":
+		return 8
+	else:
+		return 0
+		
+		
+def pull_week_data(num_weeks, feature_name):
+	days_of_week = ["mon",
+				 "tues",
+				 "wed",
+				 "thurs",
+				 "fri"
+		]
+	feature_index = select_feature(feature_name)
+	week_data = []
+	db = dc.DatabaseConnect()
+	#old_len = 0
+	
+	for week_num in range(2, num_weeks+1):
+		for day in days_of_week:
+			table_name = "5pi_"+str(day)+str(week_num)
+			db.connect()
+			db_data = db.readTable(table_name)
+			db.disconnect()
+			for db_iter in sorted(db_data, key=lambda dummy_arr:dummy_arr[1]):
+				week_data.append(db_iter[feature_index])
+			'''
+			while (week_data[old_len] < 1):
+				del week_data[old_len]
+			old_len = len(week_data)
+			'''
+		
+	return week_data
