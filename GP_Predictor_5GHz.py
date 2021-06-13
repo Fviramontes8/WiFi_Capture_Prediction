@@ -33,8 +33,8 @@ import PlotUtils as pu
 
 if __name__ == '__main__':
 	test_day = "Monday"
-	bits_train = np.load("data/tr_bits_15weeks_halfhoursample.npy")
-	bits_test = np.load("data/tst_bits_week15mon_halfhoursample.npy")
+	bits_train = np.load("sample_data/tr_bits_15weeks_hoursample_normalized.npy")
+	bits_test = np.load("sample_data/tst_bits_week15mon_hoursample_normalized.npy")
 	print(len(bits_train))
 	print(len(bits_test))
 	#Parameters for formatting training data
