@@ -10,6 +10,14 @@ DatabaseProcessor.py - TBD
 
 SignalProcessor.py - TBD
 
+## Running examples
+
+The following python scripts can be run for seeing what this code can do:
+
+    RidgeRegressionExample.py
+    GP_Predictor_5GHz.py
+    GP_Predictor_5GHz_Pytorch.py
+
 ## Library requirements (conda is recommended when available)
 
 ### psycopg2 for database capabilities
