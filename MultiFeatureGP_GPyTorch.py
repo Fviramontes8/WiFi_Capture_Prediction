@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Python 3.8.5
-Packages needed: scikit-learn, psycopg2, numpy, scipy, pytorch, gpytorch
+""" Python 3.8.5 Packages needed: scikit-learn, psycopg2, numpy, scipy, pytorch, gpytorch
 @author: Francisco Viramontes
 From: https://github.com/fviramontes8/Wifi_Capture_Prediction
-Depends on files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
+Depends on local files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
 """
 
 # Private signal processor/sampler
@@ -39,6 +37,14 @@ def buffer_filter(data, filter_window=1800):
 	X=sp.buffer2(data,filter_window,0).T
 	Xs=np.sum(X,0)/filter_window
 	return Xs
+
+def plot_autocorr(data, title):
+	self_corr = np.correlate(data, data, "full")
+	pu.general_plot(self_corr, title)
+
+def plot_crosscorr(x, y, title):
+	crosscorr = np.correlate(x, y, "full")
+	pu.general_plot(crosscorr, title)
 
 def save_as_csv(filename, data):
 	with open(filename, "w") as csv_file:
@@ -79,12 +85,23 @@ pktnum = buffer_filter(raw_pkt_data)
 sig = buffer_filter(raw_sig_data)
 phya = buffer_filter(raw_phya_data)
 
-pu.general_plot(nou, "Filtered number of users")
-pu.general_plot(bits, "Filtered bits")
-pu.general_plot(pktnum, "Filtered number of packets")
-pu.general_plot(sig, "Filtered signal strength")
-pu.general_plot(phya, "Filtered 802.11a bits")
+#pu.general_plot(nou, "Filtered number of users")
+#pu.general_plot(bits, "Filtered bits")
+#pu.general_plot(pktnum, "Filtered number of packets")
+#pu.general_plot(sig, "Filtered signal strength")
+#pu.general_plot(phya, "Filtered 802.11a bits")
 
+#plot_autocorr(nou, "Auto correlation of number of users")
+#plot_autocorr(bits, "Auto correlation of bits")
+#plot_autocorr(pktnum, "Auto correlation of number of packets")
+#plot_autocorr(sig, "Auto correlation of signal strength")
+#plot_autocorr(phya, "Auto correlation of 802.11a bits")
+
+#plot_crosscorr(bits, nou, "Cross correlation between number of users and bits")
+#plot_crosscorr(bits, pktnum, "Cross correlation between bits and number of packets")
+#plot_crosscorr(pktnum, sig, "Cross correlation between number of packets and signal strength")
+
+"""
 nou_tr_x, nou_tr_y = window_prep(nou)
 bits_tr_x, bits_tr_y = window_prep(bits)
 pktnum_tr_x, pktnum_tr_y = window_prep(pktnum)
@@ -114,6 +131,7 @@ optimizer = torch.optim.Adam([
 		],
 		lr = 0.1
 	)
+"""
 	
 #gptu.TorchTrain(train_x, train_y, gp_model, likelihood, optimizer, 500)
 #save_as_csv("raw_training_signalstrength_15weeks_nosample_singlecol.csv", x_list) 
