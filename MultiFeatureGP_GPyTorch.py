@@ -46,6 +46,11 @@ def plot_crosscorr(x, y, title):
 	crosscorr = np.correlate(x, y, "full")
 	pu.general_plot(crosscorr, title)
 
+def plot_features(feats, feat_titles):
+	assert(len(feats)==len(feat_titles))
+	for i in range(len(feats)):
+		pu.general_plot(feats[i], feat_titles[i])
+
 def save_as_csv(filename, data):
 	with open(filename, "w") as csv_file:
 		csv_writer = csv.writer(csv_file, delimiter=",")
@@ -72,12 +77,23 @@ raw_sig_data = np.load("data/raw_sigstrength_15weeks.npy")
 raw_phya_data = np.load("data/raw_phya_15weeks.npy")
 print(len(raw_nou_data))
 
-#pu.general_plot(raw_nou_data, "Number of users")
-#pu.general_plot(raw_bits_data, "Bits")
-#pu.general_plot(raw_pkt_data, "Number of packets")
-#pu.general_plot(raw_sig_data, "Signal Strength")
+raw_data = [
+	raw_nou_data,
+	raw_bits_data, 
+	raw_pkt_data, 
+	raw_sig_data,
+	raw_phya_data
+]
 
-#pu.general_plot(raw_phya_data, "802.11a data")
+raw_titles = [
+	"Number of Users",
+	"Bits",
+	"Number of Packets",
+	"Signal Strength",
+	"802.11a data"
+]
+
+plot_features(raw_data, raw_titles)
 
 nou = buffer_filter(raw_nou_data)
 bits = buffer_filter(raw_bits_data)
@@ -85,11 +101,25 @@ pktnum = buffer_filter(raw_pkt_data)
 sig = buffer_filter(raw_sig_data)
 phya = buffer_filter(raw_phya_data)
 
-#pu.general_plot(nou, "Filtered number of users")
-#pu.general_plot(bits, "Filtered bits")
-#pu.general_plot(pktnum, "Filtered number of packets")
-#pu.general_plot(sig, "Filtered signal strength")
-#pu.general_plot(phya, "Filtered 802.11a bits")
+filtered_data = [nou, bits, pktnum, sig, phya]
+filter_str = "Filtered "
+filtered_titles = [
+	filter_str+raw_titles[0],
+	filter_str+raw_titles[1],
+	filter_str+raw_titles[2],
+	filter_str+raw_titles[3],
+	filter_str+raw_titles[4]
+]
+	
+plot_features(filtered_data, filtered_titles)
+
+'''
+pu.general_plot(nou, "Filtered number of users")
+pu.general_plot(bits, "Filtered bits")
+pu.general_plot(pktnum, "Filtered number of packets")
+pu.general_plot(sig, "Filtered signal strength")
+pu.general_plot(phya, "Filtered 802.11a bits")
+'''
 
 #plot_autocorr(nou, "Auto correlation of number of users")
 #plot_autocorr(bits, "Auto correlation of bits")
@@ -101,13 +131,14 @@ phya = buffer_filter(raw_phya_data)
 #plot_crosscorr(bits, pktnum, "Cross correlation between bits and number of packets")
 #plot_crosscorr(pktnum, sig, "Cross correlation between number of packets and signal strength")
 
-"""
 nou_tr_x, nou_tr_y = window_prep(nou)
 bits_tr_x, bits_tr_y = window_prep(bits)
 pktnum_tr_x, pktnum_tr_y = window_prep(pktnum)
 sig_tr_x, sig_tr_y = window_prep(sig)
-phya_tr_x, phya_tr_y = window_prep(phya)
 
+phya_tst_x, phya_tst_y = window_prep(phya)
+
+"""
 train_x = torch.stack([
 		nou_tr_x.transpose(0, 1),
 		bits_tr_x.transpose(0, 1),
