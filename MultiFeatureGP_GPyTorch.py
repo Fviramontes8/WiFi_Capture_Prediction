@@ -38,9 +38,11 @@ def buffer_filter(data, filter_window=1800):
 	Xs=np.sum(X,0)/filter_window
 	return Xs
 
-def plot_autocorr(data, title):
-	self_corr = np.correlate(data, data, "full")
-	pu.general_plot(self_corr, title)
+def plot_autocorr(data, titles):
+	assert(len(feats)==len(feat_titles))
+	for i in range(len(feats)):
+		self_corr = np.correlate(data[i], data[i], "full")
+		pu.general_plot(self_corr, title)
 
 def plot_crosscorr(x, y, title):
 	crosscorr = np.correlate(x, y, "full")
@@ -113,13 +115,6 @@ filtered_titles = [
 	
 plot_features(filtered_data, filtered_titles)
 
-'''
-pu.general_plot(nou, "Filtered number of users")
-pu.general_plot(bits, "Filtered bits")
-pu.general_plot(pktnum, "Filtered number of packets")
-pu.general_plot(sig, "Filtered signal strength")
-pu.general_plot(phya, "Filtered 802.11a bits")
-'''
 
 #plot_autocorr(nou, "Auto correlation of number of users")
 #plot_autocorr(bits, "Auto correlation of bits")
