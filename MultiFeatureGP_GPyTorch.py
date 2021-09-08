@@ -38,21 +38,6 @@ def buffer_filter(data, filter_window=3600):#1800):
 	Xs=np.sum(X,0)/filter_window
 	return Xs
 
-def plot_autocorr(data, titles):
-	assert(len(feats)==len(feat_titles))
-	for i in range(len(feats)):
-		self_corr = np.correlate(data[i], data[i], "full")
-		pu.general_plot(self_corr, title)
-
-def plot_crosscorr(x, y, title):
-	crosscorr = np.correlate(x, y, "full")
-	pu.general_plot(crosscorr, title)
-
-def plot_features(feats, feat_titles):
-	assert(len(feats)==len(feat_titles))
-	for i in range(len(feats)):
-		pu.general_plot(feats[i], feat_titles[i])
-
 def save_as_csv(filename, data):
 	with open(filename, "w") as csv_file:
 		csv_writer = csv.writer(csv_file, delimiter=",")

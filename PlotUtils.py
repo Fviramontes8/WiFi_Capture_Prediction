@@ -60,6 +60,21 @@ def general_double_plot(data1, data2, title="", xtitle="", ytitle=""):
 	plt.xlabel(xtitle)
 	plt.ylabel(ytitle)
 	plt.show()
+
+def plot_autocorr(data, titles):
+	assert(len(feats)==len(feat_titles))
+	for i in range(len(feats)):
+		self_corr = np.correlate(data[i], data[i], "full")
+		general_plot(self_corr, title)
+
+def plot_crosscorr(x, y, title):
+	crosscorr = np.correlate(x, y, "full")
+	general_plot(crosscorr, title)
+
+def plot_features(feats, feat_titles):
+	assert(len(feats)==len(feat_titles))
+	for i in range(len(feats)):
+		general_plot(feats[i], feat_titles[i])
 		
 def plot_gp(pred, sigma, compare, x_title, y_title, day, window):
 	#print("Arguement size: ", pred.shape, sigma.shape, compare.shape)
