@@ -80,7 +80,7 @@ raw_titles = [
 	"802.11a data"
 ]
 
-plot_features(raw_data, raw_titles)
+#pu.plot_features(raw_data, raw_titles)
 
 nou = buffer_filter(raw_nou_data)
 bits = buffer_filter(raw_bits_data)
@@ -98,18 +98,18 @@ filtered_titles = [
 	filter_str+raw_titles[4]
 ]
 	
-plot_features(filtered_data, filtered_titles)
+#pu.plot_features(filtered_data, filtered_titles)
 
 
-#plot_autocorr(nou, "Auto correlation of number of users")
-#plot_autocorr(bits, "Auto correlation of bits")
-#plot_autocorr(pktnum, "Auto correlation of number of packets")
-#plot_autocorr(sig, "Auto correlation of signal strength")
-#plot_autocorr(phya, "Auto correlation of 802.11a bits")
+#pu.plot_autocorr(nou, "Auto correlation of number of users")
+#pu.plot_autocorr(bits, "Auto correlation of bits")
+#pu.plot_autocorr(pktnum, "Auto correlation of number of packets")
+#pu.plot_autocorr(sig, "Auto correlation of signal strength")
+#pu.plot_autocorr(phya, "Auto correlation of 802.11a bits")
 
-#plot_crosscorr(bits, nou, "Cross correlation between number of users and bits")
-#plot_crosscorr(bits, pktnum, "Cross correlation between bits and number of packets")
-#plot_crosscorr(pktnum, sig, "Cross correlation between number of packets and signal strength")
+#pu.plot_crosscorr(bits, nou, "Cross correlation between number of users and bits")
+#pu.plot_crosscorr(bits, pktnum, "Cross correlation between bits and number of packets")
+#pu.plot_crosscorr(pktnum, sig, "Cross correlation between number of packets and signal strength")
 
 nou_tr_x, nou_tr_y = window_prep(nou)
 bits_tr_x, bits_tr_y = window_prep(bits)#, 3600)
