@@ -31,9 +31,9 @@ import torch
 import gpytorch
 import math
 
-def buffer_filter(data, filter_window=1800):
+def buffer_filter(data, filter_window=3600):#1800):
 	#Uniform window filtering and downsampling
-	#filter_window=1800 # from 1 second to 1 hour (filter every 3600 seconds)
+	#filter_window=3600 # from 1 second to 1 hour (filter every 3600 seconds)
 	X=sp.buffer2(data,filter_window,0).T
 	Xs=np.sum(X,0)/filter_window
 	return Xs
@@ -127,13 +127,14 @@ plot_features(filtered_data, filtered_titles)
 #plot_crosscorr(pktnum, sig, "Cross correlation between number of packets and signal strength")
 
 nou_tr_x, nou_tr_y = window_prep(nou)
-bits_tr_x, bits_tr_y = window_prep(bits)
+bits_tr_x, bits_tr_y = window_prep(bits)#, 3600)
 pktnum_tr_x, pktnum_tr_y = window_prep(pktnum)
 sig_tr_x, sig_tr_y = window_prep(sig)
 
 phya_tst_x, phya_tst_y = window_prep(phya)
 
-"""
+print(nou_tr_x.shape, nou_tr_y.shape)
+
 train_x = torch.stack([
 		nou_tr_x.transpose(0, 1),
 		bits_tr_x.transpose(0, 1),
@@ -150,15 +151,19 @@ train_y = torch.stack([
 	])
 print(train_y.shape)
 
+"""
+train_x = bits_tr_x.transpose(0, 1)
+train_y = bits_tr_y
+"""
+
 likelihood = gpytorch.likelihoods.GaussianLikelihood()
 gp_model = gptu.LinearGPModel(train_x, train_y, likelihood)
 optimizer = torch.optim.Adam([
-			{"params" : gp_model.parameters()},
-		],
-		lr = 0.1
-	)
-"""
+		{"params" : gp_model.parameters()},
+	],
+	lr = 0.1
+)
 	
-#gptu.TorchTrain(train_x, train_y, gp_model, likelihood, optimizer, 500)
+gptu.TorchTrain(train_x, train_y, gp_model, likelihood, optimizer, 10)
 #save_as_csv("raw_training_signalstrength_15weeks_nosample_singlecol.csv", x_list) 
 #save_as_csv("raw_testing_signalstrength_15weeks_nosample_col.csv", y_list)
