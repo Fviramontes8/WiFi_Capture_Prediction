@@ -14,6 +14,42 @@ import SignalProcessor as sp
 import torch
 import GPyTorchUtilities as gptu
 
+def PlotMTGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title=""):
+	with torch.no_grad():
+		#fig, ax = plt.subplots(1, 1, figsize = (8, 6))
+		mt_lower_sigma, mt_upper_sigma = YPred.confidence_region()
+		for i in range(YPred.mean.numpy().shape[0]):
+			sigma1_lower, sigma1_upper = gptu.ToStdDev1MT(
+				YPred.mean.numpy()[0],
+				mt_lower_sigma[i],
+				mt_upper_sigma[i]
+			)
+
+			plt.plot(XCompare.numpy(), YCompare.numpy()[i], "k")
+			plt.plot(XPred.numpy(), YPred.mean.numpy()[i], "b")
+			print(XPred.numpy().shape)
+			print(mt_lower_sigma.numpy().shape)
+			print(mt_upper_sigma.numpy().shape)
+			plt.fill_between(
+				XPred.numpy()[i],
+				mt_lower_sigma.numpy()[i],
+				mt_upper_sigma.numpy()[i],
+				alpha = 0.5
+			)
+	
+			plt.fill_between(
+				XPred.numpy(),
+				sigma1_lower,
+				sigma1_upper,
+				alpha = 0.5
+			)
+	
+			plt.xlabel(Xtitle)
+			plt.ylabel(Ytitle)
+			plt.title(Title)
+			plt.legend(["Observed Data", "Prediction Mean", "2 StdDev Confidence", "1 StdDev Confidence"])
+			plt.show()
+
 def PlotGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title=""):
 	with torch.no_grad():
 		fig, ax = plt.subplots(1, 1, figsize = (8, 6))
@@ -37,8 +73,6 @@ def PlotGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title="")
 			alpha = 0.5
 		)
 
-		#ax.set_ylim([-10, 10])
-		#ax.set_xlim([-6, 6])
 		ax.set_xlabel(Xtitle)
 		ax.set_ylabel(Ytitle)
 		ax.set_title(Title)
@@ -62,12 +96,12 @@ def general_double_plot(data1, data2, title="", xtitle="", ytitle=""):
 	plt.show()
 
 def plot_autocorr(data, titles):
-	assert(len(feats)==len(feat_titles))
-	for i in range(len(feats)):
+	for i in range(len(data)):
 		self_corr = np.correlate(data[i], data[i], "full")
-		general_plot(self_corr, title)
+		general_plot(self_corr, titles[i])
 
 def plot_crosscorr(x, y, title):
+	assert(len(x)==len(y))
 	crosscorr = np.correlate(x, y, "full")
 	general_plot(crosscorr, title)
 
