@@ -65,6 +65,16 @@ def TorchTest(Xtst, GPModel, GPLikelihood):
 Takes a torch tensor and returns lower and upper confidence region for one
 standard deviation
 """
+def ToStdDev1MT(pred_mean, lower2sigma, upper2sigma):
+	lower1sigma = ( (lower2sigma.numpy() - pred_mean) / 1.96) + pred_mean
+	upper1sigma = ( (upper2sigma.numpy() - pred_mean) / 1.96) + pred_mean
+
+	return lower1sigma, upper1sigma
+
+"""
+Takes a torch tensor and returns lower and upper confidence region for one
+standard deviation
+"""
 def ToStdDev1(pred_mean):
 	lower2sigma, upper2sigma = pred_mean.confidence_region()
 
