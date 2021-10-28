@@ -29,7 +29,7 @@ import torch
 import gpytorch
 import math
 
-def buffer_filter(data, filter_window=3600):#1800):
+def buffer_filter(data, filter_window=3600):
 	#Uniform window filtering and downsampling
 	#filter_window=3600 # from 1 second to 1 hour (filter every 3600 seconds)
 	X=sp.buffer2(data,filter_window,0).T
