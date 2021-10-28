@@ -174,12 +174,11 @@ if __name__ == "__main__":
 	print("Confidence region shape:")
 	print(pred.confidence_region()[0].detach().numpy().shape)
 	print(pred.mean.numpy().shape[0])
-	#if pred.mean[0, 0]:
-	#	print("hello")
 		
 
 	time_x = torch.Tensor([i for i in range(train_y.shape[1])])
 
+    # This is for documentation
 	pred_title = "Linear GP Prediction\nwith 1 standard deviation\nand 2 standard deviations"
 	x_title = "Time (hours)"
 	y_title = "Bits"
