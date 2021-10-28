@@ -183,4 +183,12 @@ if __name__ == "__main__":
 	pred_title = "Linear GP Prediction\nwith 1 standard deviation\nand 2 standard deviations"
 	x_title = "Time (hours)"
 	y_title = "Bits"
-	pu.PlotMTGPPred(time_x, torch.Tensor(train_y), time_x, pred, x_title, y_title, pred_title)
+	pu.PlotMTGPPred(
+        time_x, 
+        torch.Tensor(train_y), 
+        time_x, 
+        pred, 
+        x_title, 
+        y_title, 
+        pred_title
+    )
