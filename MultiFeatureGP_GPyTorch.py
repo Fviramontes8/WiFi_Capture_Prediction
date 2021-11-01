@@ -210,3 +210,6 @@ if __name__ == "__main__":
 
 		gp_mae = mae(train_y[i].numpy(), pred.mean[i].numpy())
 		print(training_features[i], " mae: ", gp_mae)
+
+		gp_r_sq = r2_score(train_y[i].numpy(), pred.mean[i].numpy())
+		print(training_features[i], " r2 score: ", gp_r_sq)
