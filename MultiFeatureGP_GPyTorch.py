@@ -116,6 +116,7 @@ if __name__ == "__main__":
 		filter_str+raw_titles[3],
 		filter_str+raw_titles[4]
 	]
+	training_features = raw_titles[:4]
 		
 	#pu.plot_features(filtered_data, filtered_titles)
 	
@@ -164,7 +165,7 @@ if __name__ == "__main__":
 		lr = 0.5
 	)
 		
-	gptu.TorchTrain(train_x, train_y, gp_model, likelihood, optimizer, 100)
+	gptu.TorchTrain(train_x, train_y, gp_model, likelihood, optimizer, 10)
 	
 	test_x = torch.stack([
 		phya_tst_x.transpose(0, 1)
@@ -177,16 +178,16 @@ if __name__ == "__main__":
 	print(test_x.shape, test_y.shape)
 
 	pred = gptu.TorchTest(test_x, gp_model, likelihood)
-	print(pred.mean.numpy().shape)
-	print("Confidence region shape:")
-	print(pred.confidence_region()[0].detach().numpy().shape)
-	print(pred.mean.numpy().shape[0])
+	#print(pred.mean.numpy().shape)
+	#print("Confidence region shape:")
+	#print(pred.confidence_region()[0].detach().numpy().shape)
+	#print(pred.mean.numpy().shape[0])
 		
 
 	time_x = torch.Tensor([i for i in range(train_y.shape[1])])
 
     # This is for documentation
-	pred_title = "Linear GP Prediction\nwith 1 standard deviation\nand 2 standard deviations"
+	pred_title = "Linear GP Predicting "
 	x_title = "Time (hours)"
 	y_title = "Bits"
 	pu.PlotMTGPPred(
@@ -196,5 +197,16 @@ if __name__ == "__main__":
         pred, 
         x_title, 
         y_title, 
-        pred_title
+        pred_title,
+        training_features
     )
+	for i in range(len(training_features)):
+		gp_mape = sp.mape_test(train_y[i].numpy(), pred.mean[i].numpy())
+		print(training_features[i], " mape: ", gp_mape)
+		#print("Shape", train_y[i].numpy().shape, pred.mean[i].numpy().shape)
+
+		gp_mse = mse(train_y[i].numpy(), pred.mean[i].numpy())
+		print(training_features[i], " mse: ", gp_mse)
+
+		gp_mae = mae(train_y[i].numpy(), pred.mean[i].numpy())
+		print(training_features[i], " mae: ", gp_mae)
