@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
-""" Python 3.8.5 Packages needed: scikit-learn, psycopg2, numpy, scipy, pytorch, gpytorch
+""" 
+Python 3.8.5 
+Packages needed: scikit-learn, psycopg2, numpy, scipy, pytorch, gpytorch
 @author: Francisco Viramontes
 From: https://github.com/fviramontes8/Wifi_Capture_Prediction
-Depends on local files: DatabaseConnector.py, DatabaseProcessor.py Signal Processor.py
+Depends on local files: 
+    DatabaseConnector.py, 
+    DatabaseProcessor.py,
+    SignalProcessor.py,
+    GPyTorchUtilities.py,
+    PlotUtils.py
 """
 
 # Private signal processor/sampler
