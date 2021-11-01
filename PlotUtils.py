@@ -14,7 +14,7 @@ import SignalProcessor as sp
 import torch
 import GPyTorchUtilities as gptu
 
-def PlotMTGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title=""):
+def PlotMTGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title="", TasksTitle=""):
 	with torch.no_grad():
 		#fig, ax = plt.subplots(1, 1, figsize = (8, 6))
 		mt_lower_sigma, mt_upper_sigma = YPred.confidence_region()
@@ -27,9 +27,10 @@ def PlotMTGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title="
 
 			plt.plot(XCompare.numpy(), YCompare.numpy()[i], "k")
 			plt.plot(XPred.numpy(), YPred.mean.numpy()[i], "b")
-			print(XPred.numpy().shape)
-			print(mt_lower_sigma.numpy().shape)
-			print(mt_upper_sigma.numpy().shape)
+			#print(XPred.numpy().shape)
+			#print(mt_lower_sigma.numpy().shape)
+			#print(mt_upper_sigma.numpy().shape)
+			#with 1 standard deviation\nand 2 standard deviations"
 			plt.fill_between(
 				XPred.numpy()[i],
 				mt_lower_sigma.numpy()[i],
@@ -46,7 +47,7 @@ def PlotMTGPPred(XCompare, YCompare, XPred, YPred, Xtitle="", Ytitle="", Title="
 	
 			plt.xlabel(Xtitle)
 			plt.ylabel(Ytitle)
-			plt.title(Title)
+			plt.title(Title+TasksTitle[i])
 			plt.legend(["Observed Data", "Prediction Mean", "2 StdDev Confidence", "1 StdDev Confidence"])
 			plt.show()
 
